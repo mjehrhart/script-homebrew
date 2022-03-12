@@ -1,5 +1,7 @@
 #[allow(unused_variables, dead_code, non_camel_case_types, unused_imports)]
 pub mod lexer {
+    use crate::formula::brew_formula;
+    use crate::formula::brew_formula::brew_formula::get_tokenkind_map;
     use super::*;
     use std::any::type_name;
     use std::collections::HashMap;
@@ -57,65 +59,12 @@ pub mod lexer {
     impl<'a> Iterator for Tokenizer<'a> {
         type Item = TokenKind;
 
-        fn next(&mut self) -> Option<TokenKind> {
-            let mut mapping = HashMap::new();
-            mapping.insert(
-                String::from("class"),
-                TokenKind::Class {
-                    raw: String::from(""),
-                },
-            );
-            mapping.insert(
-                String::from("homepage"),
-                TokenKind::Variable {
-                    raw: String::from(""),
-                },
-            );
-            mapping.insert(
-                String::from("desc"),
-                TokenKind::Variable {
-                    raw: String::from(""),
-                },
-            );
-            mapping.insert(
-                String::from("url"),
-                TokenKind::Variable {
-                    raw: String::from(""),
-                },
-            );
-            mapping.insert(
-                String::from("version"),
-                TokenKind::Variable {
-                    raw: String::from(""),
-                },
-            );
-            mapping.insert(
-                String::from("sha256"),
-                TokenKind::Variable {
-                    raw: String::from(""),
-                },
-            );
-            mapping.insert(
-                String::from("license"),
-                TokenKind::Variable {
-                    raw: String::from(""),
-                },
-            );
-            mapping.insert(
-                String::from("end"),
-                TokenKind::End,
-            );
-            mapping.insert(
-                String::from("def"),
-                TokenKind::Def,
-            );
-
-            let now = &self.expr;
-            //println!("now::{:?}", now);
-            let next_char = self.expr.next();
-            //println!(".next_char::{:?}", next_char);
+        fn next(&mut self) -> Option<TokenKind> { 
+            let now = &self.expr; 
+            let next_char = self.expr.next(); 
 
             match next_char {
+                Some('#') => Some(TokenKind::Comment),
                 Some(' ') => {
                     let whitespace = next_char?.to_string();
                     let val = whitespace.chars().next();
@@ -144,7 +93,7 @@ pub mod lexer {
                         kind: Kind::CRLF,
                     })
                 }
-                Some('#') => Some(TokenKind::Comment),
+
                 Some('<') => Some(TokenKind::Signature {
                     raw: "<".to_string(),
                     kind: Kind::Object,
@@ -174,8 +123,12 @@ pub mod lexer {
 
                                 //println!("22 {:?}, {:?}", next, self.expr.peek());
 
-                                if mapping.contains_key(&catcher) {
-                                    let x = mapping.get(&catcher).unwrap();
+                                //&mut HashMap<String, TokenKind>
+                                let mapping: HashMap<String, TokenKind> = HashMap::new();
+                                let hashmap = brew_formula::brew_formula::get_tokenkind_map(mapping);
+                                
+                                if hashmap.contains_key(&catcher) {
+                                    let x = hashmap.get(&catcher).unwrap();
                                     match x {
                                         TokenKind::Class { raw: _ } => {
                                             return Some(TokenKind::Class { raw: catcher });
@@ -202,14 +155,14 @@ pub mod lexer {
                             }
                             None => {}
                         }
-                    } 
+                    }
                     return Some(TokenKind::Object(catcher));
                 }
                 Some(_) => {
                     let character = next_char?.to_string();
                     let character = character.chars().next();
                     println!("77 ::{:?}", character);
-                    Some(TokenKind::Punctuation(character.unwrap())) 
+                    Some(TokenKind::Punctuation(character.unwrap()))
                 }
                 None => Some(TokenKind::Undefined),
             }
@@ -222,4 +175,3 @@ pub mod lexer {
         type_name::<T>()
     }
 }
- 

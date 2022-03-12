@@ -13,36 +13,12 @@ fn main() -> Result<(), std::io::Error> {
     println!("options:: {:?}", options);
 
     let path = "/Users/matthew/dev/projects/script-homebrew/temp.rb";
-    formula::map::read_pdf(path);
-
-    /* let mut file = File::open("temp.rb")?;
-    let mut buf_reader = BufReader::new(file);
-    let mut contents = String::new();
-    buf_reader.read_to_string(&mut contents)?;
-    println!("{}", contents); */
-
-/*     let mut buffer = BufWriter::new(File::create("temp.rb")?);
-    buffer.write_all(b"class Temp < Formula
-    desc \"\"
-    homepage \"\"
-    url \"\"
-    version \"\"
-    sha256 \"\"
-    license \"\"
-
-    def install
-        bin.install \"temp\"
-    end
-
-end
-    ")?;
-    buffer.flush()?; */
-
-
-
-
-  
-
+    let this= formula::map::read_ruby_template(path);
+    match this{
+        Ok(_) => {},
+        Err(_) => {},
+    }
+ 
    /*  //1
     Command::new("cargo")
         .arg("build")
