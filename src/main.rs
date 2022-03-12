@@ -1,4 +1,5 @@
 mod formula;
+use formula::brew_formula;
 
 use std::io::BufWriter;
 use std::process::Command;
@@ -6,14 +7,13 @@ use std::fs::File;
 use std::io::BufReader;
 use std::io::prelude::*;
 
- 
-//fs::copy("foo.txt", "bar.txt")?;
+  
 fn main() -> Result<(), std::io::Error> {
     let options: formula::brew_formula::brew_formula::Formula_Rb = Default::default(); 
     println!("options:: {:?}", options);
 
     let path = "/Users/matthew/dev/projects/script-homebrew/temp.rb";
-    let this= formula::map::read_ruby_template(path);
+    let this=  formula::brew_formula::brew_formula::Formula_Rb::read_ruby_template(path);
     match this{
         Ok(_) => {},
         Err(_) => {},

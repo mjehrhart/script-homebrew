@@ -7,7 +7,7 @@
     license "BS2"
 
     def install
-        bin.install "temp"
+        bin.install "tempddd"
     end
 
 end

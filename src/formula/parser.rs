@@ -81,7 +81,7 @@ pub mod parser {
                     _ => {}
                 }
 
-                prev = token_list[i].clone(); //todo perhaps a peek forward instead
+                //prev = token_list[i].clone(); //todo perhaps a peek forward instead
             }
         
             rb

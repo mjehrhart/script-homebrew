@@ -7,7 +7,7 @@ use crate::formula::{
     lexer::lexer::{TokenKind},
 };
 
-pub fn read_ruby_template(path: &str) -> Result<(), std::io::Error> {
+pub fn read_ruby_template2(path: &str) -> Result<(), std::io::Error> {
     let mut f = OpenOptions::new()
         .read(true)
         .write(false)
