@@ -50,9 +50,7 @@ pub fn read_pdf(path: &str) {
     }
 
     let mut brew = brew_formula::brew_formula::Formula_Rb::default();
-  
-    // println!("{:?}", buf_string);
-    // println!("{:?}", token_list);
+ 
     for i in 0..token_list.len() {
         println!("..{:?}", token_list[i]);
 
