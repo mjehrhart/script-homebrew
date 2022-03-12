@@ -1,0 +1,106 @@
+mod formula;
+
+use std::io::BufWriter;
+use std::process::Command;
+use std::fs::File;
+use std::io::BufReader;
+use std::io::prelude::*;
+
+ 
+//fs::copy("foo.txt", "bar.txt")?;
+fn main() -> Result<(), std::io::Error> {
+    let options: formula::brew_formula::brew_formula::Formula_Rb = Default::default(); 
+    println!("options:: {:?}", options);
+
+    let path = "/Users/matthew/dev/projects/script-homebrew/temp.rb";
+    formula::map::read_pdf(path);
+
+    /* let mut file = File::open("temp.rb")?;
+    let mut buf_reader = BufReader::new(file);
+    let mut contents = String::new();
+    buf_reader.read_to_string(&mut contents)?;
+    println!("{}", contents); */
+
+/*     let mut buffer = BufWriter::new(File::create("temp.rb")?);
+    buffer.write_all(b"class Temp < Formula
+    desc \"\"
+    homepage \"\"
+    url \"\"
+    version \"\"
+    sha256 \"\"
+    license \"\"
+
+    def install
+        bin.install \"temp\"
+    end
+
+end
+    ")?;
+    buffer.flush()?; */
+
+
+
+
+  
+
+   /*  //1
+    Command::new("cargo")
+        .arg("build")
+        .arg("--release")
+        .arg("--manifest-path")
+        .arg("/Users/matthew/dev/projects/script-homebrew/Cargo.toml")
+        .spawn()
+        .expect("failed to execute process");
+
+    //3
+    Command::new("tar")
+        .arg("-c")
+        .arg("-z")
+        .arg("-f")
+        .arg("./target/release/script-homebrew.tar.gz")
+        .arg("/Users/matthew/dev/projects/script-homebrew/target/release/script-homebrew")
+        .spawn()
+        .expect("failed to execute process");
+    //4
+    let shasum = {
+        Command::new("shasum")
+            .arg("-a")
+            .arg("256")
+            .arg(
+                "/Users/matthew/dev/projects/script-homebrew/target/release/script-homebrew.tar.gz",
+            )
+            .output()
+            .expect("failed to execute process")
+    };
+
+    let hello = shasum.stdout;
+    println!("shasum:: {:?}", std::str::from_utf8(&hello).unwrap());
+
+    //brew create https://example.com/foo-0.1.tar.gz
+    //3
+    let brew =
+        {
+            Command::new("brew")
+        .arg("create") 
+        .arg("/Users/matthew/dev/projects/script-homebrew/target/release/script-homebrew.tar.gz")
+        .output()
+            .expect("failed to execute process")
+        };
+
+    let hello = brew.stdout;
+    println!("brew:: {:?}", std::str::from_utf8(&hello).unwrap());
+    //println!("brew:: {:?}", hello);
+ */
+    /* Command::new("brew")
+           .arg("create")
+           .arg("/Users/matthew/dev/projects/script-homebrew/target/release/script-homebrew/script-homebrew.tar.gz")
+           .spawn()
+           .expect("failed to execute process");
+    */
+    Ok(())
+}
+
+
+    ////Users/matthew/dev/projects/script-homebrew/target/release/script-homebrew
+    //let directory = "/Users/matthew/dev/projects/script-homebrew/target/release/script-homebrew";
+    //let cargo_dir = "/Users/matthew/dev/projects/script-homebrew";
