@@ -19,6 +19,8 @@ pub mod lexer {
 
     #[derive(Debug, PartialEq, Clone, Eq, Hash)]
     pub enum TokenKind {
+        Def,
+        End,
         Class { raw: String },
         Variable { raw: String },
         Latin { raw: char, kind: Kind },
@@ -99,6 +101,14 @@ pub mod lexer {
                     raw: String::from(""),
                 },
             );
+            mapping.insert(
+                String::from("end"),
+                TokenKind::End,
+            );
+            mapping.insert(
+                String::from("def"),
+                TokenKind::Def,
+            );
 
             let now = &self.expr;
             //println!("now::{:?}", now);
@@ -111,7 +121,7 @@ pub mod lexer {
                     let val = whitespace.chars().next();
                     if val.unwrap().is_whitespace() {
                         return Some(TokenKind::Whitespace {
-                            raw: '*',
+                            raw: ' ',
                             kind: Kind::Whitespace,
                         });
                     }
@@ -129,65 +139,41 @@ pub mod lexer {
                             });
                         }
                     }
-                    //Some(TokenKind::Punctuation(character.unwrap()))
-                    Some(TokenKind::CRLF { raw: "\r\n".to_string(), kind: Kind::CRLF, })
+                    Some(TokenKind::CRLF {
+                        raw: "\r\n".to_string(),
+                        kind: Kind::CRLF,
+                    })
                 }
                 Some('#') => Some(TokenKind::Comment),
                 Some('<') => Some(TokenKind::Signature {
                     raw: "<".to_string(),
                     kind: Kind::Object,
                 }),
-                // Some('"') => {
-                //     let character = next_char?.to_string();
-                //     let character = character.chars().next();
-                //
-                //     if let Some(next_char) = self.expr.next() {
-                //         if character.unwrap() == '"' && next_char == '"' {
-                //             //self.expr.next(); //advanced the token
-                //             return Some(TokenKind::Value);
-                //         } else {
-                //             //return Some(TokenKind::Punctuation(character.unwrap()));
-                //         }
-                //     }
-                //     return Some(TokenKind::Punctuation('-'));
-                // }
-                Some('A'..='z' | '-' | '+') => {
+                Some('"') => {
+                    let character = next_char?.to_string();
+                    let character = character.chars().next();
+
+                    if let Some(next_char) = self.expr.next() {
+                        if character.unwrap() == '"' && next_char == '"' {
+                            return Some(TokenKind::Value);
+                        } else {
+                            //return Some(TokenKind::Punctuation(character.unwrap()));
+                        }
+                    }
+                    return Some(TokenKind::Punctuation('-'));
+                }
+                Some('A'..='z') => {
                     let alphabetic = next_char?.to_string();
                     let next_alphabetic = alphabetic.chars().next();
-  
+
                     let mut catcher = next_alphabetic.unwrap().to_string();
                     while let Some(next) = self.expr.next() {
- 
                         match Some(next) {
-                            // Some('\n' | '\r') => {
-                            //     let character = next_char?.to_string();
-                            //     let character = character.chars().next();
-                            //     if let Some(next_char) = self.expr.peek() {
-                            //         if character == Some('\r') && next_char == &'\n' {
-                            //             self.expr.next(); //move forward 1 position
-                            //             return Some(TokenKind::CRLF {
-                            //                 raw: "\r\n".to_string(),
-                            //                 kind: Kind::CRLF,
-                            //             });
-                            //         }
-                            //     }
-                            //     return Some(TokenKind::Punctuation(character.unwrap()));
-                            // }
-                            // Some(' ') => {
-                            //     let whitespace = next_char?.to_string();
-                            //     let val = whitespace.chars().next();
-                            //     if val.unwrap().is_whitespace() {
-                            //         return Some(TokenKind::Whitespace {
-                            //             raw: '^',
-                            //             kind: Kind::Whitespace,
-                            //         });
-                            //     }
-                            //     return Some(TokenKind::Undefined);
-                            // }
                             Some(_) => {
                                 catcher.push(next);
 
-                                println!("22{:?}", catcher);
+                                //println!("22 {:?}, {:?}", next, self.expr.peek());
+
                                 if mapping.contains_key(&catcher) {
                                     let x = mapping.get(&catcher).unwrap();
                                     match x {
@@ -197,25 +183,21 @@ pub mod lexer {
                                         TokenKind::Variable { raw: _ } => {
                                             return Some(TokenKind::Variable { raw: catcher });
                                         }
+                                        TokenKind::End => {
+                                            return Some(TokenKind::End);
+                                        }
+                                        TokenKind::Def => {
+                                            return Some(TokenKind::Def);
+                                        }
                                         _ => {
                                             return Some(TokenKind::Class { raw: catcher });
                                         }
                                     }
-                                } else {
-                                    if next == ' ' {
-                                        //catcher.pop();
-                                        return Some(TokenKind::Object(catcher));
-                                    } 
-                                    else if next == '\n' {
-                                        //catcher.pop();
-                                        return Some(TokenKind::Object(catcher));
-                                    } 
-                                    // } else if next == '\n' {
-                                      //     return Some(TokenKind::CRLF {
-                                      //         raw: "\n".to_string(),
-                                      //         kind: Kind::CRLF,
-                                      //     });
-                                      // }
+                                }
+
+                                if self.expr.peek() == Some(&' ') || self.expr.peek() == Some(&'\n')
+                                {
+                                    return Some(TokenKind::Object(catcher));
                                 }
                             }
                             None => {}
