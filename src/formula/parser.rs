@@ -28,6 +28,20 @@ pub mod parser {
             };
         }
 
+        pub fn find_token(token_list: Vec<TokenKind>){
+
+            let needle = TokenKind::Variable { raw: "desc".to_string() };
+            for i in 0..token_list.len() {
+                println!("..{:?}", token_list[i]);
+
+                if token_list[i] == needle{
+                    println!("Found it at position {}", i);
+                    println!("Found {:?}", token_list[i]);
+                }
+
+            }
+        }
+
         pub fn get_next_token(&mut self) -> TokenKind {
             let next_token = match self.tokenizer.next() {
                 Some(token) => token,

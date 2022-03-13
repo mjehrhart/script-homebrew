@@ -55,7 +55,9 @@ pub mod brew_formula {
                 }
             }
 
-            let ruby_template = parser::Parser::convert_token_to_node(token_list);
+            let ruby_template = parser::Parser::convert_token_to_node(token_list.clone());
+            parser::Parser::find_token(token_list);
+            
             //let mut brew = brew_formula::brew_formula::Formula_Rb::default();
 
             //"class Temp < Formula\r\n desc \"\r\n homepage \"\r\nend\r\n"

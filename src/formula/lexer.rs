@@ -1,8 +1,8 @@
 #[allow(unused_variables, dead_code, non_camel_case_types, unused_imports)]
 pub mod lexer {
+    use super::*;
     use crate::formula::brew_formula;
     use crate::formula::brew_formula::brew_formula::get_tokenkind_map;
-    use super::*;
     use std::any::type_name;
     use std::collections::HashMap;
     use std::fs::OpenOptions;
@@ -59,9 +59,9 @@ pub mod lexer {
     impl<'a> Iterator for Tokenizer<'a> {
         type Item = TokenKind;
 
-        fn next(&mut self) -> Option<TokenKind> { 
-            let now = &self.expr; 
-            let next_char = self.expr.next(); 
+        fn next(&mut self) -> Option<TokenKind> {
+            let now = &self.expr;
+            let next_char = self.expr.next();
 
             match next_char {
                 Some('#') => Some(TokenKind::Comment),
@@ -125,8 +125,9 @@ pub mod lexer {
 
                                 //&mut HashMap<String, TokenKind>
                                 let mapping: HashMap<String, TokenKind> = HashMap::new();
-                                let hashmap = brew_formula::brew_formula::get_tokenkind_map(mapping);
-                                
+                                let hashmap =
+                                    brew_formula::brew_formula::get_tokenkind_map(mapping);
+
                                 if hashmap.contains_key(&catcher) {
                                     let x = hashmap.get(&catcher).unwrap();
                                     match x {
