@@ -5,7 +5,7 @@ pub mod parser {
     use std::str::Chars;
     use std::{any::type_name, fmt};
 
-    use crate::formula::lexer::lexer::{TokenKind, Tokenizer};
+    use crate::formula::lexer::lexer::{TokenKind, Tokenizer, Kind};
 
     #[derive(Debug, Clone)]
     pub struct Parser<'a> {
@@ -35,10 +35,54 @@ pub mod parser {
                 println!("..{:?}", token_list[i]);
 
                 if token_list[i] == needle{
-                    println!("Found it at position {}", i);
+                    println!("Found it at index {}", i);
                     println!("Found {:?}", token_list[i]);
+
+                    break;
                 }
 
+            }
+ 
+            let stop: TokenKind = TokenKind::CRLF { raw: "\r\n".to_string(), kind: Kind::CRLF };
+            let mut i = 12 + 1; //index + next one
+            let mut catcher:String = String::from("");
+            while let Some(token) = Some(&token_list[i]){
+
+                match token { 
+                    TokenKind::Class { raw: val } => {
+                        catcher.push_str(val);
+                    }
+                    TokenKind::Variable { raw: val } => {
+                        catcher.push_str(val);
+                    }
+                    TokenKind::Punctuation(char) => {
+                        catcher.push(*char);
+                    }
+                    TokenKind::Value => {
+                        catcher.push('"');
+                    }
+                    TokenKind::Whitespace { raw: char, kind: _ } => {
+                        catcher.push(*char);
+                    }
+                    TokenKind::CRLF { raw: val, kind: _ } => {
+                        catcher.push_str(val);
+                    }
+                    TokenKind::Comment => {
+                        catcher.push('#');
+                    }
+                     
+                    TokenKind::Object(val) => {
+                        catcher.push_str(val);
+                    }
+                    _ => {}
+                }
+                if token == &stop{
+
+
+                    println!("catcher::{}", catcher);
+                    break;
+                }
+                i += 1;
             }
         }
 
