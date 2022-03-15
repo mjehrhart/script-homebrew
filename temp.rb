@@ -1,4 +1,4 @@
- class Temp < Formula
+class Temp < Formula
     desc "my stuff"
     homepage "http://www.google.com"
     url "http://www.yahoo.com"

@@ -21,27 +21,34 @@ pub mod lexer {
 
     #[derive(Debug, PartialEq, Clone, Eq, Hash)]
     pub enum TokenKind {
+        ALPHABETICAL(char),
+        WHITESPACE,
+
+        NUMBER(u8),
+        Number(String),
+
+        Letter(String),
+        Word(String),
+
         Def,
         End,
         Class { raw: String },
         Variable { raw: String },
-        Latin { raw: char, kind: Kind },
-        Number(u8),
-        Numbers { raw: String, kind: Kind },
+        // Latin { raw: char, kind: Kind },
+        // Number(u8),
+        // Numbers { raw: String, kind: Kind },
         Punctuation(char),
-        Value,
+        Value(String),
         Whitespace { raw: char, kind: Kind },
-        EOF,
+        // EOF,
         Undefined,
-        ISSUE,
         Object(String),
-        Uri(String),
         CRLF { raw: String, kind: Kind },
         Comment,
         Signature { raw: String, kind: Kind },
     }
 
-    // Tokenizer struct contains a Peekable iterator on the arithmetic expression
+    // Tokenizer struct contains a Peekable iterator on the expression
     #[derive(Debug, Clone)]
     pub struct Tokenizer<'a> {
         expr: Peekable<Chars<'a>>,
@@ -60,109 +67,23 @@ pub mod lexer {
         type Item = TokenKind;
 
         fn next(&mut self) -> Option<TokenKind> {
-            let now = &self.expr;
             let next_char = self.expr.next();
 
             match next_char {
-                Some('#') => Some(TokenKind::Comment),
+                Some('0'..='9') => {
+                    let number = next_char?.to_string();
+                    let number: u8 = number.parse().unwrap();
+                    Some(TokenKind::NUMBER(number))
+                }
                 Some(' ') => {
-                    let whitespace = next_char?.to_string();
-                    let val = whitespace.chars().next();
-                    if val.unwrap().is_whitespace() {
-                        return Some(TokenKind::Whitespace {
-                            raw: ' ',
-                            kind: Kind::Whitespace,
-                        });
-                    }
-                    Some(TokenKind::Undefined)
+                    let var = next_char?.to_string();
+                    Some(TokenKind::WHITESPACE)
                 }
-                Some('\n' | '\r') => {
-                    let character = next_char?.to_string();
-                    let character = character.chars().next();
-                    if let Some(next_char) = self.expr.peek() {
-                        if character == Some('\r') && next_char == &'\n' {
-                            self.expr.next(); //move forward 1 position  TODO review
-                            return Some(TokenKind::CRLF {
-                                raw: "\r\n".to_string(),
-                                kind: Kind::CRLF,
-                            });
-                        }
-                    }
-                    Some(TokenKind::CRLF {
-                        raw: "\r\n".to_string(),
-                        kind: Kind::CRLF,
-                    })
-                }
+                Some('A'..='z') => Some(TokenKind::ALPHABETICAL(next_char.unwrap())),
 
-                Some('<') => Some(TokenKind::Signature {
-                    raw: "<".to_string(),
-                    kind: Kind::Object,
-                }),
-                Some('"') => {
-                    let character = next_char?.to_string();
-                    let character = character.chars().next();
-
-                    if let Some(next_char) = self.expr.peek() {
-                        if character.unwrap() == '"' && next_char == &'"' {
-                            return Some(TokenKind::Value);
-                        } else {
-                            return Some(TokenKind::Punctuation(character.unwrap()));
-                        }
-                    }
-                    return Some(TokenKind::Punctuation('-'));
-                }
-                Some('A'..='z') => {
-                    let alphabetic = next_char?.to_string();
-                    let next_alphabetic = alphabetic.chars().next();
-
-                    let mut catcher = next_alphabetic.unwrap().to_string();
-                    while let Some(next) = self.expr.next() {
-                        match Some(next) {
-                            Some(_) => {
-                                catcher.push(next);
-
-                                //println!("22 {:?}, {:?}", next, self.expr.peek());
-
-                                //&mut HashMap<String, TokenKind>
-                                let mapping: HashMap<String, TokenKind> = HashMap::new();
-                                let hashmap =
-                                    brew_formula::brew_formula::get_tokenkind_map(mapping);
-
-                                if hashmap.contains_key(&catcher) {
-                                    let x = hashmap.get(&catcher).unwrap();
-                                    match x {
-                                        TokenKind::Class { raw: _ } => {
-                                            return Some(TokenKind::Class { raw: catcher });
-                                        }
-                                        TokenKind::Variable { raw: _ } => {
-                                            return Some(TokenKind::Variable { raw: catcher });
-                                        }
-                                        TokenKind::End => {
-                                            return Some(TokenKind::End);
-                                        }
-                                        TokenKind::Def => {
-                                            return Some(TokenKind::Def);
-                                        }
-                                        _ => {
-                                            //return Some(TokenKind::Class { raw: catcher });
-                                        }
-                                    }
-                                }
-
-                                if self.expr.peek() == Some(&' ') || self.expr.peek() == Some(&'\n')
-                                {
-                                    return Some(TokenKind::Object(catcher));
-                                }
-                            }
-                            None => {}
-                        }
-                    }
-                    return Some(TokenKind::Object(catcher));
-                }
                 Some(_) => {
                     let character = next_char?.to_string();
                     let character = character.chars().next();
-                    println!("77 ::{:?}", character);
                     Some(TokenKind::Punctuation(character.unwrap()))
                 }
                 None => Some(TokenKind::Undefined),
@@ -175,4 +96,122 @@ pub mod lexer {
     pub fn type_of<T>(_: T) -> &'static str {
         type_name::<T>()
     }
+
+    // Unit tests
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn test_tokenizer() {
+            let mut tokenizer = Tokenizer::new("300");
+            assert_eq!(tokenizer.next().unwrap(), TokenKind::Punctuation('3'))
+        }
+    }
 }
+
+/*
+
+
+
+match next_char {
+                // Some('#') => Some(TokenKind::Comment),
+                /* Some(' ') => {
+                    let whitespace = next_char?.to_string();
+
+                    //let val = whitespace.chars().next();
+                    //let val = self.expr.peek();
+
+                    return Some(TokenKind::Whitespace {
+                        raw: ' ',
+                        kind: Kind::Whitespace,
+                    });
+
+                    //Some(TokenKind::Undefined)
+                } */
+                // Some('\r' | '\n') => {
+                //     let character = next_char?.to_string();
+                //     let character = character.chars().next();
+                //     if let Some(next_char) = self.expr.peek() {
+                //         if character == Some('\r') && next_char == &'\n' {
+                //             self.expr.next(); //move forward 1 position  TODO review
+                //             return Some(TokenKind::CRLF {
+                //                 raw: "\r\n".to_string(),
+                //                 kind: Kind::CRLF,
+                //             });
+                //         }
+                //     }
+                //     Some(TokenKind::CRLF {
+                //         raw: "\r\n".to_string(),
+                //         kind: Kind::CRLF,
+                //     })
+                // }
+                // Some('<') => Some(TokenKind::Signature {
+                //     raw: "<".to_string(),
+                //     kind: Kind::Object,
+                // }),
+                // Some('"') => {
+                //     let character = next_char?.to_string();
+                //     let character = character.chars().next();
+                //     if let Some(next_char) = self.expr.peek() {  //TODO this doesnt make sense
+                //         if character.unwrap() == '"' && next_char == &'"' {
+                //             return Some(TokenKind::Value);
+                //         } else {
+                //             return Some(TokenKind::Punctuation(character.unwrap()));
+                //         }
+                //     }
+                //     return Some(TokenKind::Punctuation('-'));
+                // }
+                Some('A'..='z') => {
+                    let alphabetic = next_char?.to_string();
+                    let next_alphabetic = alphabetic.chars().peekable().next();
+
+                    let mut catcher = next_alphabetic.unwrap().to_string();
+                    while let Some(next) = self.expr.next() {
+                        //
+                        // if self.expr.peek() == Some(&' ')
+                        //     || self.expr.peek() == Some(&'\n')
+                        //     || self.expr.peek() == Some(&'\'')
+                        // {
+                        //     catcher.push(next);
+                        //     return Some(TokenKind::Object(catcher));
+                        // }
+
+                        match Some(next) {
+                            // Some('\'') => {
+                            //     //catcher.push(' ');
+
+                            //     return Some(TokenKind::Uri(catcher));
+                            // }
+                            // Some(' ') => {
+                            //     return Some(TokenKind::Whitespace {
+                            //         raw: ' ',
+                            //         kind: Kind::Whitespace,
+                            //     });
+                            // }
+                            Some('A'..='z') => {
+                                //catcher.push(next);
+                                return Some(TokenKind::Object(next.to_string()));
+                            }
+                            Some(_) => {
+                                println!("___next {:?} ", next);
+                            }
+                            None => {
+                                println!("NONE {:?} ", next);
+                            }
+                        }
+                    }
+                    return Some(TokenKind::Temp(catcher));
+                }
+                Some(_) => {
+                    let character = next_char?.to_string();
+                    let character = character.chars().next();
+                    //println!("77 ::{:?}", character);
+                    Some(TokenKind::Punctuation(character.unwrap()))
+                }
+                None => Some(TokenKind::Undefined),
+            }
+
+
+
+*/

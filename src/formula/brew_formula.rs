@@ -1,5 +1,9 @@
 pub mod brew_formula {
-    use std::{collections::HashMap, fs::{OpenOptions, File}, io::{Read, BufWriter, Write}};
+    use std::{
+        collections::HashMap,
+        fs::{File, OpenOptions},
+        io::{BufWriter, Read, Write},
+    };
 
     use crate::formula::{lexer::lexer::TokenKind, parser::parser};
 
@@ -45,7 +49,8 @@ pub mod brew_formula {
                 page.push_str(b);
             }
 
-            let mut token_list: Vec<TokenKind> = vec![];
+            //Part ONE
+            /* let mut token_list: Vec<TokenKind> = vec![];
             let mut parsie = parser::Parser::new(&page).unwrap();
 
             for _c in page.chars() {
@@ -56,15 +61,52 @@ pub mod brew_formula {
             }
 
             let ruby_template = parser::Parser::convert_token_to_node(token_list.clone());
-            parser::Parser::find_token(token_list);
-            
-            //let mut brew = brew_formula::brew_formula::Formula_Rb::default();
-
             //"class Temp < Formula\r\n desc \"\r\n homepage \"\r\nend\r\n"
             let mut buffer = BufWriter::new(File::create("pmet.rb")?);
             buffer.write_all(ruby_template.as_bytes())?;
-            buffer.flush()?;
+            buffer.flush()?; */
 
+            /* let catcher = parser::Parser::find_token(String::from("url"), token_list);
+            println!("\n\ncatcher:: {:#?}", catcher); */
+
+            //Part TWO
+            /* let mut token_list: Vec<TokenKind> = vec![];
+            let mut parsie = parser::Parser::new(&catcher).unwrap();
+
+            for _c in catcher.chars() {
+                let y = parsie.get_next_token();
+                if y != TokenKind::Undefined {
+                    token_list.push(y)
+                }
+            }
+
+            for token in &token_list {
+                println!("token_list at catcher:: {:?}", token);
+            } */
+
+            //Part THREEE
+            //let catcher = "!doggy #\"henry\" 2.5 \"delete\" dog?".to_string();
+            let catcher = "!a dog is 2.5 \"delete\" happy than a 20 cat 65 F".to_string();
+            println!("\nString:: {:#?}\n", catcher);
+            let mut token_list: Vec<TokenKind> = vec![];
+            let mut parsie = parser::Parser::new(&catcher).unwrap();
+ 
+            for _c in catcher.chars() {
+                let y = parsie.get_next_token();
+                if y != TokenKind::Undefined {  
+                    token_list.push(y)
+                }
+            }
+
+            //println!("\t");
+            println!("length:: {}", &token_list.len());
+            // for token in &token_list {
+            //     println!("token_list at catcher:: {:?}", token);
+            // }
+
+            let ruby_template = parser::Parser::convert_token_to_node(token_list.clone());
+            println!("ruby_template:: {:?}", ruby_template);
+   
             Ok(())
         }
     }
@@ -118,5 +160,31 @@ pub mod brew_formula {
         mapping.insert(String::from("def"), TokenKind::Def);
 
         mapping
+    }
+
+    // Unit tests
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+ 
+         #[test]
+        fn test_current_token() {
+            //current_token
+            let catcher = "henry is  a dog".to_string();
+            let parsie = parser::Parser::new(&catcher).unwrap();
+            assert_eq!( parsie.current_token, TokenKind::Object("henry".to_string()) )
+        }
+
+        #[test]
+        fn test_get_next_token() {
+            let catcher = "henry is  a dog".to_string();
+            let mut parsie = parser::Parser::new(&catcher).unwrap();
+
+            let tokenizer = TokenKind::Whitespace {
+                raw: ' ',
+                kind: crate::formula::lexer::lexer::Kind::Whitespace,
+            }; 
+            assert_eq!(parsie.get_next_token(), tokenizer)
+        }
     }
 }
