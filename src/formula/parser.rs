@@ -1,7 +1,10 @@
+//!This is the primary workload for manipulating tokens and nodes
+
 #[allow(unused_variables, dead_code, non_camel_case_types, unused_imports)]
 pub mod parser {
     use super::*;
     use crate::enums::TokenKind;
+    use crate::formula;
     use crate::formula::ast::{BNode, Node};
     use crate::formula::lexer::lexer::Tokenizer;
     use std::error::Error;
@@ -23,6 +26,7 @@ pub mod parser {
     }
 
     impl<'a> Parser<'a> {
+        ///Creates a new Parser
         pub fn new(exp: &'a str) -> Result<Self, String> {
             let mut lexy = Tokenizer::new(exp);
             return match lexy.next() {
@@ -37,6 +41,7 @@ pub mod parser {
             };
         }
 
+        ///Gets the next token from the Parser
         pub fn get_next_token(&mut self) -> TokenKind {
             let next_token = match self.tokenizer.next() {
                 Some(token) => token,
@@ -46,6 +51,7 @@ pub mod parser {
             next_token
         }
 
+        ///Converts tokens to meaningful types and values
         pub fn parse_tokens(mut token_list: Vec<TokenKind>) -> Vec<TokenKind> {
             //Step One::Searches for pair of " ", and remove those nodes after copying value;
             let mut exs = Parser::tmp_get_matching_delim(&token_list);
@@ -55,9 +61,17 @@ pub mod parser {
                 if exs.found {
                     let mut catcher = String::from("");
                     for x in (exs.start.unwrap()..=exs.end.unwrap()).rev() {
-                        match Some(&token_list[x]) {
-                            Some(TokenKind::Latin(val)) => catcher.insert(0, *val),
-                            Some(_) => {}
+                        match Some(token_list[x].clone()) {
+                            Some(TokenKind::Latin(val)) => catcher.insert(0, val),
+                            Some(TokenKind::Punctuation(val)) => catcher.insert(0, val),
+                            Some(TokenKind::Digit(number)) => {
+                                for num in number.to_string().chars() {
+                                    catcher.insert(0, num);
+                                }
+                            }
+                            Some(tk) => {
+                                println!("____________________________tk::{:?}", tk);
+                            }
                             None => {}
                         }
                         token_list.remove(x);
@@ -148,8 +162,9 @@ pub mod parser {
 
             token_list
         }
-  
-        pub fn convert_to_ast_form(token_list: Vec<TokenKind>) -> Vec<crate::formula::ast::Node> {
+
+        /// Transforms the Parser's tokens into AST nodes
+        pub fn convert_to_ast_nodes(token_list: Vec<TokenKind>) -> Vec<crate::formula::ast::Node> {
             //
             let mut node_list: Vec<crate::formula::ast::Node> = vec![];
             for token in &token_list {
@@ -212,9 +227,160 @@ pub mod parser {
 
             node_list
         }
+
+        /// Takes a Vec<Node> and searches for all Node::Variable. Then transform those nodes
+        /// into Node::Assignment(_,_)
+        pub fn transform_nodes_to_assignment_nodes(node_list: Vec<Node>) -> Vec<Node> {
+            let mut ruby_template = node_list;
+
+            let mut exs = Parser::tmp_get_node_variable_delim(&ruby_template);
+            println!("exs::{:?}", exs);
+
+            while exs.found != false {
+                exs = Parser::tmp_get_node_variable_delim(&ruby_template);
+                println!("exs::{:?}", exs);
+
+                //// Find node
+
+                println!();
+                //Step One, find Node::Variable and work backwards
+                let mut variable_index = 0;
+                let mut variable_value = "";
+                for i in 0..ruby_template.len() - 1 {
+                    match &ruby_template[i] {
+                        Node::Assignment(_, _) => {}
+                        Node::Comment(_) => {}
+                        Node::Letter(_) => {}
+                        Node::Number(_) => {}
+                        Node::Punctuation(_) => {}
+                        Node::Word(_) => {}
+                        Node::Variable(val) => {
+                            let b_node = val;
+                            variable_value = &b_node.value;
+                            println!("Node.value..{:?}", b_node);
+                            variable_index = i;
+                            break;
+                        }
+                    }
+                }
+                println!("index at {}", variable_index);
+
+                //Step Two, find corresponding Word or Letter
+                let mut node_index = 0;
+                let mut node_value = "";
+                for i in (0..=variable_index).rev() {
+                    match &ruby_template[i] {
+                        Node::Assignment(_, _) => {}
+                        Node::Comment(_) => {}
+                        Node::Letter(val) => {
+                            let b_node = val;
+                            node_value = &b_node.value;
+                            node_index = i;
+                            break;
+                        }
+                        Node::Number(_) => {}
+                        Node::Punctuation(_) => {}
+                        Node::Word(val) => {
+                            let b_node = val;
+                            node_value = &b_node.value;
+                            node_index = i;
+                            break;
+                        }
+                        Node::Variable(_) => {}
+                    }
+                }
+
+                println!(
+                    "matching node is {}, {:?}",
+                    node_index, &ruby_template[node_index]
+                );
+
+                //Print node
+                let bn1 = BNode {
+                    value: node_value.to_string(),
+                };
+                let bn2 = BNode {
+                    value: variable_value.to_string(),
+                };
+                let box1 = Box::new(bn1);
+                let box2 = Box::new(bn2);
+
+                let b_node = Node::Assignment(box1, box2);
+
+                ruby_template.remove(variable_index); //TODO, remove the exta Whitespace but not urgent
+                ruby_template.remove(node_index);
+                ruby_template.insert(node_index, b_node);
+            }
+
+            ruby_template
+        }
+
+        pub fn update_node_assignment(
+            mut node_list: Vec<Node>,
+            name: String,
+            new_value: String,
+        ) -> Vec<Node> {
+            println!("pub update_node_assignment");
+
+            let mut index = 0;
+            for i in 0..node_list.len() {
+                match &node_list[i] {
+                    Node::Assignment(val, _) => {
+                        let bnode = val;
+                        if (bnode.value == name) {
+                            println!("..______name::{} {:?}", i, name);
+                            index = i;
+                        }
+                    }
+                    _ => {}
+                }
+            }
+
+            node_list.remove(index);
+
+            let string_list = vec!["\"".to_string(), new_value, "\"".to_string()];
+            let joined = string_list.join("");
+
+            let node = Node::Assignment(
+                Box::new(BNode {
+                    value: name.to_string(),
+                }),
+                Box::new(BNode {
+                    value: joined.to_string(),
+                }),
+            );
+            node_list.insert(index, node);
+
+            node_list
+        }
     }
 
     impl<'a> Parser<'a> {
+        /// Looks for Letters and Word tokens
+        fn tmp_get_node_variable_delim(node_list: &Vec<Node>) -> ExpressionSplitter {
+            let mut flag = false;
+            let mut start = None;
+
+            for i in 0..node_list.len() {
+                match Some(&node_list[i]) {
+                    Some(Node::Variable(_)) => {
+                        start = Some(i);
+                        flag = true;
+                        break;
+                    }
+                    Some(_) => {}
+                    None => {}
+                }
+            }
+
+            ExpressionSplitter {
+                found: flag,
+                start: start,
+                end: None,
+            }
+        }
+
+        /// Searches for mathgin Punctuation("'");
         fn tmp_get_matching_delim(token_list: &Vec<TokenKind>) -> ExpressionSplitter {
             let symbol1 = TokenKind::Punctuation('"');
             let symbol2 = TokenKind::Punctuation('"');
@@ -243,6 +409,7 @@ pub mod parser {
             }
         }
 
+        /// Looks for Letters and Word tokens
         fn tmp_get_latin_delim(token_list: &Vec<TokenKind>) -> ExpressionSplitter {
             let mut flag = false;
             let mut start = None;
@@ -265,6 +432,7 @@ pub mod parser {
             }
         }
 
+        /// Forms numbers from tokens
         fn tmp_get_number_delim(token_list: &Vec<TokenKind>) -> ExpressionSplitter {
             let mut flag = false;
             let mut start = None;

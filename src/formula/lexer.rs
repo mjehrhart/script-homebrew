@@ -1,9 +1,10 @@
+//!The lexer procceses the input converts to a vector of tokens
 #[allow(unused_variables, dead_code, non_camel_case_types, unused_imports)]
 pub mod lexer {
     use super::*;
     use crate::enums::TokenKind;
-    use crate::formula::brew_formula;
-    use crate::formula::brew_formula::brew_formula::get_tokenkind_map;
+    use crate::formula::controller;
+    use crate::formula::controller::ruby::get_tokenkind_map;
 
     use std::any::type_name;
     use std::collections::HashMap;

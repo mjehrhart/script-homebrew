@@ -1,6 +1,8 @@
+//! This is the main comment from main.rs 1
 mod enums;
 mod formula;
-use formula::brew_formula;
+
+use formula::controller;
 
 use std::fs::File;
 use std::io::prelude::*;
@@ -8,19 +10,40 @@ use std::io::BufReader;
 use std::io::BufWriter;
 use std::process::Command;
 
+/// Example
+/// ```rust
+/// # main() -> Result<(), std::io::Error> {
+/// let catcher = "!a \'crazy\' dog is 2.5 \"delete\" a #20 cat 65 is not".to_string();
+/// formula::brew::ruby::Formula_Rb::read_string(catcher);
+/// ```
+/// or
+/// ```
+/// let path = "/Users/matthew/dev/projects/script-homebrew/temp.rb";
+/// let this = formula::brew::ruby::Formula_Rb::read_ruby_template(path);
+/// match this {
+///     Ok(_) => {}
+///     Err(_) => {}
+/// }
+/// ```
+///
 fn main() -> Result<(), std::io::Error> {
-    let options: formula::brew_formula::brew_formula::Formula_Rb = Default::default();
+    let options: formula::controller::ruby::Formula_Rb = Default::default();
     println!("options:: {:?}", options);
 
-    /* let path = "/Users/matthew/dev/projects/script-homebrew/temp.rb";
-    let this = formula::brew_formula::brew_formula::Formula_Rb::read_ruby_template(path);
+    let path = "/Users/matthew/dev/projects/script-homebrew/temp.rb";
+    let this = formula::controller::ruby::Formula_Rb::read_ruby_template(path);
     match this {
         Ok(_) => {}
         Err(_) => {}
-    } */
+    }
 
-    let catcher = "!a \'crazy\' dog is 2.5 \"delete\" happy \"than\" a #20 cat 65 is not".to_string();
-    formula::brew_formula::brew_formula::Formula_Rb::read_string(catcher);
+    // let catcher =
+    //     "!a \'crazy\' dog is 2.5 \"delete\" happy \"than\" a #20 cat 65 is not".to_string();
+    // let catcher = "! dog link is http://www.google.com";
+    // formula::brew::ruby::Formula_Rb::read_string(catcher.to_string());
+
+
+
 
     /*  //1
        Command::new("cargo")

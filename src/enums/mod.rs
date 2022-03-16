@@ -1,5 +1,4 @@
- 
-
+///Token field and description for tokenizer (lexer)
 #[derive(Debug, PartialEq, Clone, Eq, Hash)]
 pub enum TokenKind {
     Comment,
@@ -17,7 +16,8 @@ pub enum TokenKind {
     Undefined,
 }
 
-#[derive(Debug, PartialEq, Copy, Clone, Eq)] 
+///Licenses type for brew create field 'License'
+#[derive(Debug, PartialEq, Copy, Clone, Eq)]
 enum license {
     Appache_License_2_0,
     GNU_General_Public_License_v3_0,
