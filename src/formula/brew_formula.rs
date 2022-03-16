@@ -5,7 +5,8 @@ pub mod brew_formula {
         io::{BufWriter, Read, Write},
     };
 
-    use crate::formula::{lexer::lexer::TokenKind, parser::parser};
+    use crate::formula::parser::parser;
+    use crate::{enums::TokenKind, formula};
 
     #[derive(Default, Debug, Clone, Copy)]
     pub struct Formula_Rb<'a> {
@@ -50,7 +51,7 @@ pub mod brew_formula {
             }
 
             //Part ONE
-            /* let mut token_list: Vec<TokenKind> = vec![];
+            let mut token_list: Vec<TokenKind> = vec![];
             let mut parsie = parser::Parser::new(&page).unwrap();
 
             for _c in page.chars() {
@@ -60,17 +61,28 @@ pub mod brew_formula {
                 }
             }
 
-            let ruby_template = parser::Parser::convert_token_to_node(token_list.clone());
             //"class Temp < Formula\r\n desc \"\r\n homepage \"\r\nend\r\n"
-            let mut buffer = BufWriter::new(File::create("pmet.rb")?);
+            let ruby_template = parser::Parser::convert_to_ast_form(token_list.clone());
+            println!("\ruby_template length:: {}", &ruby_template.len());
+            for some in &ruby_template {
+                println!("..{:?}", some);
+            }
+
+            /* let mut buffer = BufWriter::new(File::create("pmet.rb")?);
             buffer.write_all(ruby_template.as_bytes())?;
             buffer.flush()?; */
 
-            /* let catcher = parser::Parser::find_token(String::from("url"), token_list);
-            println!("\n\ncatcher:: {:#?}", catcher); */
+            // let catcher = parser::Parser::find_token(String::from("url"), token_list);
+            // println!("\n\ncatcher:: {:#?}", catcher);
 
-            //Part TWO
-            /* let mut token_list: Vec<TokenKind> = vec![];
+            Ok(())
+        }
+
+        pub fn read_string(expr: String) {
+            //Test Two
+            let catcher = expr;
+            println!("\n({})String:: {:#?}\n", catcher.len(), catcher);
+            let mut token_list: Vec<TokenKind> = vec![];
             let mut parsie = parser::Parser::new(&catcher).unwrap();
 
             for _c in catcher.chars() {
@@ -80,84 +92,78 @@ pub mod brew_formula {
                 }
             }
 
-            for token in &token_list {
-                println!("token_list at catcher:: {:?}", token);
-            } */
+            println!("length:: {}", &token_list.len());
 
-            //Part THREEE
-            //let catcher = "!doggy #\"henry\" 2.5 \"delete\" dog?".to_string();
-            let catcher = "!a dog is 2.5 \"delete\" happy than a 20 cat 65 F".to_string();
-            println!("\nString:: {:#?}\n", catcher);
-            let mut token_list: Vec<TokenKind> = vec![];
-            let mut parsie = parser::Parser::new(&catcher).unwrap();
- 
-            for _c in catcher.chars() {
-                let y = parsie.get_next_token();
-                if y != TokenKind::Undefined {  
-                    token_list.push(y)
-                }
+            let new_token_list = parser::Parser::parse_tokens(token_list.clone());
+
+            let something = parser::Parser::convert_to_ast_form(new_token_list);
+            println!("\nsomething length:: {}", &something.len());
+            for some in &something {
+                println!("..{:?}", some);
             }
 
-            //println!("\t");
-            println!("length:: {}", &token_list.len());
-            // for token in &token_list {
-            //     println!("token_list at catcher:: {:?}", token);
-            // }
+            let ruby_string = formula::ast::eval(something);
+            match ruby_string {
+                Ok(_) => {
+                    println!("\nruby_string:: {:?}", &ruby_string);
+                    println!("\nruby_string:: {:?}", &ruby_string.unwrap().len());
+                }
+                Err(_) => {}
+            }
 
-            let ruby_template = parser::Parser::convert_token_to_node(token_list.clone());
-            println!("ruby_template:: {:?}", ruby_template);
-   
-            Ok(())
+            ////////////
+           
+             
         }
     }
 
     pub fn get_tokenkind_map(
         mut mapping: HashMap<String, TokenKind>,
     ) -> HashMap<String, TokenKind> {
-        mapping.insert(
-            String::from("class"),
-            TokenKind::Class {
-                raw: String::from(""),
-            },
-        );
-        mapping.insert(
-            String::from("homepage"),
-            TokenKind::Variable {
-                raw: String::from(""),
-            },
-        );
-        mapping.insert(
-            String::from("desc"),
-            TokenKind::Variable {
-                raw: String::from(""),
-            },
-        );
-        mapping.insert(
-            String::from("url"),
-            TokenKind::Variable {
-                raw: String::from(""),
-            },
-        );
-        mapping.insert(
-            String::from("version"),
-            TokenKind::Variable {
-                raw: String::from(""),
-            },
-        );
-        mapping.insert(
-            String::from("sha256"),
-            TokenKind::Variable {
-                raw: String::from(""),
-            },
-        );
-        mapping.insert(
-            String::from("license"),
-            TokenKind::Variable {
-                raw: String::from(""),
-            },
-        );
-        mapping.insert(String::from("end"), TokenKind::End);
-        mapping.insert(String::from("def"), TokenKind::Def);
+        // mapping.insert(
+        //     String::from("class"),
+        //     TokenKind::Class {
+        //         raw: String::from(""),
+        //     },
+        // );
+        // mapping.insert(
+        //     String::from("homepage"),
+        //     TokenKind::Variable {
+        //         raw: String::from(""),
+        //     },
+        // );
+        // mapping.insert(
+        //     String::from("desc"),
+        //     TokenKind::Variable {
+        //         raw: String::from(""),
+        //     },
+        // );
+        // mapping.insert(
+        //     String::from("url"),
+        //     TokenKind::Variable {
+        //         raw: String::from(""),
+        //     },
+        // );
+        // mapping.insert(
+        //     String::from("version"),
+        //     TokenKind::Variable {
+        //         raw: String::from(""),
+        //     },
+        // );
+        // mapping.insert(
+        //     String::from("sha256"),
+        //     TokenKind::Variable {
+        //         raw: String::from(""),
+        //     },
+        // );
+        // mapping.insert(
+        //     String::from("license"),
+        //     TokenKind::Variable {
+        //         raw: String::from(""),
+        //     },
+        // );
+        // mapping.insert(String::from("end"), TokenKind::End);
+        // mapping.insert(String::from("def"), TokenKind::Def);
 
         mapping
     }
@@ -166,25 +172,76 @@ pub mod brew_formula {
     #[cfg(test)]
     mod tests {
         use super::*;
- 
-         #[test]
-        fn test_current_token() {
-            //current_token
-            let catcher = "henry is  a dog".to_string();
+
+        #[test]
+        fn test_current_token() { 
+            let catcher = "henry is a dog".to_string();
             let parsie = parser::Parser::new(&catcher).unwrap();
-            assert_eq!( parsie.current_token, TokenKind::Object("henry".to_string()) )
+            assert_eq!(parsie.current_token, TokenKind::Latin('h'));
         }
 
         #[test]
-        fn test_get_next_token() {
-            let catcher = "henry is  a dog".to_string();
+        fn test_token_length() {
+            let catcher = "henry is a dog".to_string(); 
+            let mut token_list: Vec<TokenKind> = vec![];
             let mut parsie = parser::Parser::new(&catcher).unwrap();
 
-            let tokenizer = TokenKind::Whitespace {
-                raw: ' ',
-                kind: crate::formula::lexer::lexer::Kind::Whitespace,
-            }; 
-            assert_eq!(parsie.get_next_token(), tokenizer)
+            for _c in catcher.chars() {
+                let y = parsie.get_next_token();
+                if y != TokenKind::Undefined {
+                    token_list.push(y)
+                }
+            } 
+            assert_eq!(13, token_list.len());
+        }
+
+        #[test]
+        fn test_ast_node() { 
+            let catcher = "!henry".to_string();
+            let mut token_list: Vec<TokenKind> = vec![];
+            let mut parsie = parser::Parser::new(&catcher).unwrap();
+
+            for _c in catcher.chars() {
+                let y = parsie.get_next_token();
+                if y != TokenKind::Undefined {
+                    token_list.push(y)
+                }
+            }
+            let new_token_list = parser::Parser::parse_tokens(token_list.clone());
+            let node_list = parser::Parser::convert_to_ast_form(new_token_list);
+
+            for node in node_list {
+                match node {
+                    formula::ast::Node::Assignment(_, _) => {}
+                    formula::ast::Node::Comment(_) => {}
+                    formula::ast::Node::Letter(_) => {}
+                    formula::ast::Node::Number(_) => {}
+                    formula::ast::Node::Punctuation(_) => {}
+                    formula::ast::Node::Word(word) => {
+                        let node = *word;
+                        let value = node.value;
+                        assert_eq!(value , "henry".to_string());
+                    }
+                    formula::ast::Node::Variable(_) => {}
+                }
+            }
+        }
+
+        #[test]
+        fn test_ast_node_length() {
+            let catcher = "henry is a dog".to_string();
+            let mut token_list: Vec<TokenKind> = vec![];
+            let mut parsie = parser::Parser::new(&catcher).unwrap();
+
+            for _c in catcher.chars() {
+                let y = parsie.get_next_token();
+                if y != TokenKind::Undefined {
+                    token_list.push(y)
+                }
+            }
+            let new_token_list = parser::Parser::parse_tokens(token_list.clone());
+            let something = parser::Parser::convert_to_ast_form(new_token_list);
+            assert_eq!(7, something.len());
         }
     }
 }

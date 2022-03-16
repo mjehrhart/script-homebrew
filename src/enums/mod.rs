@@ -1,7 +1,24 @@
+ 
 
-#[derive(Debug, PartialEq, Copy, Clone, Eq)]
+#[derive(Debug, PartialEq, Clone, Eq, Hash)]
+pub enum TokenKind {
+    Comment,
+    CRLF,
+    EOF,
+    Latin(char),
+    Letter(String),
+    Punctuation(char),
+    Digit(u8),
+    Number(String),
+    Variable(String),
+    WhiteSpace,
+    Word(String),
+    Temp(String),
+    Undefined,
+}
+
+#[derive(Debug, PartialEq, Copy, Clone, Eq)] 
 enum license {
-
     Appache_License_2_0,
     GNU_General_Public_License_v3_0,
     MIT_License,

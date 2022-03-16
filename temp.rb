@@ -1,5 +1,5 @@
-class Temp < Formula
-    desc "my stuff"
+ class Temp < Formula
+    desc "my_stuff"
     homepage "http://www.google.com"
     url "http://www.yahoo.com"
     version "1.0"
@@ -7,7 +7,7 @@ class Temp < Formula
     license "BS2"
 
     def install
-        bin.install "tempddd"
+        bin.install "temp"
     end
 
 end
