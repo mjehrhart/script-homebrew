@@ -23,6 +23,9 @@ pub mod parser {
     pub struct Parser<'a> {
         pub current_token: TokenKind,
         pub tokenizer: Tokenizer<'a>,
+        pub node_list: Vec<Node>,
+        pub token_list: Vec<TokenKind>,
+        exempt_key_words: [&'a str; 41],
     }
 
     impl<'a> Parser<'a> {
@@ -33,10 +36,100 @@ pub mod parser {
                 None => Ok(Parser {
                     tokenizer: lexy,
                     current_token: TokenKind::Undefined,
+                    node_list: vec![],
+                    token_list: vec![],
+                    exempt_key_words: [
+                        "_ENCODING_",
+                        "_LINE_",
+                        "_FILE_",
+                        "BEGIN",
+                        "END",
+                        "alias",
+                        "and",
+                        "begin",
+                        "break",
+                        "case",
+                        "class",
+                        "def",
+                        "defined?",
+                        "do",
+                        "else",
+                        "elsif",
+                        "end",
+                        "ensure",
+                        "false",
+                        "for",
+                        "if",
+                        "in",
+                        "module",
+                        "next",
+                        "nil",
+                        "not",
+                        "or",
+                        "redo",
+                        "rescue",
+                        "retry",
+                        "return",
+                        "self",
+                        "super",
+                        "then",
+                        "true",
+                        "undef",
+                        "unless",
+                        "until",
+                        "when",
+                        "while",
+                        "yield",
+                    ],
                 }),
                 Some(token) => Ok(Parser {
                     tokenizer: lexy,
                     current_token: token,
+                    node_list: vec![],
+                    token_list: vec![],
+                    exempt_key_words: [
+                        "_ENCODING_",
+                        "_LINE_",
+                        "_FILE_",
+                        "BEGIN",
+                        "END",
+                        "alias",
+                        "and",
+                        "begin",
+                        "break",
+                        "case",
+                        "class",
+                        "def",
+                        "defined?",
+                        "do",
+                        "else",
+                        "elsif",
+                        "end",
+                        "ensure",
+                        "false",
+                        "for",
+                        "if",
+                        "in",
+                        "module",
+                        "next",
+                        "nil",
+                        "not",
+                        "or",
+                        "redo",
+                        "rescue",
+                        "retry",
+                        "return",
+                        "self",
+                        "super",
+                        "then",
+                        "true",
+                        "undef",
+                        "unless",
+                        "until",
+                        "when",
+                        "while",
+                        "yield",
+                    ],
                 }),
             };
         }
@@ -52,18 +145,18 @@ pub mod parser {
         }
 
         ///Converts tokens to meaningful types and values
-        pub fn parse_tokens(mut token_list: Vec<TokenKind>) -> Vec<TokenKind> {
+        pub fn parse_tokens(mut self) -> Self {
             //Step One::Searches for pair of " ", and remove those nodes after copying value;
-            let mut exs = Parser::tmp_get_matching_delim(&token_list);
+            let mut exs = Parser::tmp_get_matching_delim(&self.token_list);
             while exs.found != false {
-                exs = Parser::tmp_get_matching_delim(&token_list);
+                exs = Parser::tmp_get_matching_delim(&self.token_list);
 
                 if exs.found {
                     let mut catcher = String::from("");
                     for x in (exs.start.unwrap()..=exs.end.unwrap()).rev() {
-                        match Some(token_list[x].clone()) {
-                            Some(TokenKind::Latin(val)) => catcher.insert(0, val),
-                            Some(TokenKind::Punctuation(val)) => catcher.insert(0, val),
+                        match Some(&self.token_list[x].clone()) {
+                            Some(TokenKind::Latin(val)) => catcher.insert(0, *val),
+                            Some(TokenKind::Punctuation(val)) => catcher.insert(0, *val),
                             Some(TokenKind::Digit(number)) => {
                                 for num in number.to_string().chars() {
                                     catcher.insert(0, num);
@@ -74,24 +167,24 @@ pub mod parser {
                             }
                             None => {}
                         }
-                        token_list.remove(x);
+                        self.token_list.remove(x);
                     }
                     //println!("catcher:: {:?}", &catcher);
                     let new_token = TokenKind::Temp(catcher);
-                    token_list.insert(exs.start.unwrap(), new_token);
+                    self.token_list.insert(exs.start.unwrap(), new_token);
                 }
             }
 
-            ///Step Two:: Searches for Words and Letters
-            let mut exs = Parser::tmp_get_latin_delim(&token_list);
+            //Step Two:: Searches for Words and Letters
+            let mut exs = Parser::tmp_get_latin_delim(&self.token_list);
             while exs.found != false {
-                exs = Parser::tmp_get_latin_delim(&token_list);
+                exs = Parser::tmp_get_latin_delim(&self.token_list);
 
                 if exs.found {
                     let mut token_removal_indexer: Vec<usize> = vec![];
                     let mut catcher = "".to_string();
-                    for i in exs.start.unwrap()..token_list.len() {
-                        match Some(&token_list[i]) {
+                    for i in exs.start.unwrap()..self.token_list.len() {
+                        match Some(&self.token_list[i]) {
                             Some(TokenKind::Latin(char)) => {
                                 catcher.push(*char);
                                 token_removal_indexer.push(i);
@@ -102,40 +195,50 @@ pub mod parser {
                     }
 
                     for i in (0..token_removal_indexer.len()).rev() {
-                        token_list.remove(exs.start.unwrap());
+                        self.token_list.remove(exs.start.unwrap());
                     }
 
                     //token_list.remove(exs.start.unwrap());
                     if catcher.len() == 1 {
                         let new_token = TokenKind::Letter(catcher.clone());
-                        token_list.insert(exs.start.unwrap(), new_token);
+                        self.token_list.insert(exs.start.unwrap(), new_token);
                     } else {
                         let new_token = TokenKind::Word(catcher.clone());
-                        token_list.insert(exs.start.unwrap(), new_token);
+                        self.token_list.insert(exs.start.unwrap(), new_token);
                     }
                 }
             }
 
-            ///Step 3:: Searches for numbers
-            let mut exs = Parser::tmp_get_number_delim(&token_list);
+            //Step 3:: Searches for numbers
+            let mut exs = Parser::tmp_get_number_delim(&self.token_list);
             while exs.found != false {
-                exs = Parser::tmp_get_number_delim(&token_list);
+                exs = Parser::tmp_get_number_delim(&self.token_list);
                 let mut token_removal_indexer: Vec<usize> = vec![];
                 let mut catcher = String::from("");
-                // //
+
                 if exs.start == None {
                     break;
                 }
 
-                for i in (exs.start.unwrap()..token_list.len() - 1) {
-                    match Some(&token_list[i]) {
+                let mut flag_back_one = false;
+                for i in ((exs.start.unwrap() - 1)..self.token_list.len() - 1) {
+                    match Some(&self.token_list[i]) {
                         Some(TokenKind::Digit(num)) => {
                             catcher.push_str(&num.to_string());
                             token_removal_indexer.push(i);
+                            println!("-- -- Digit:{}, {}", i, &num.to_string());
                         }
                         Some(TokenKind::Punctuation('.')) => {
                             catcher.push('.');
                             token_removal_indexer.push(i);
+                            println!("-- -- Punctuation:");
+                        }
+                        Some(TokenKind::Word(word)) => {
+                            catcher.push_str(&*word);
+                            token_removal_indexer.push(i);
+                            //self.token_list.remove(i);
+                            flag_back_one = true;
+                            println!("-- -- Word:{}, {}", i, word);
                         }
                         Some(_) => {
                             break;
@@ -146,98 +249,144 @@ pub mod parser {
                     }
                 }
 
+                //Remove tokens
+                let mut insert: Option<usize> = None;
                 for i in (0..token_removal_indexer.len()).rev() {
-                    token_list.remove(exs.start.unwrap());
+                    insert = Some(token_removal_indexer[i]);
+                    self.token_list.remove(token_removal_indexer[i]);
                 }
 
-                //println!("catcher:: {:?}", &catcher);
-                let new_token = TokenKind::Number(catcher);
-                token_list.insert(exs.start.unwrap(), new_token);
+                //Insert newly minted token
+                let new_token = TokenKind::Number(catcher); 
+                if flag_back_one {
+                    self.token_list.insert(exs.start.unwrap()-1, new_token);
+                } else {
+                    self.token_list.insert(exs.start.unwrap(), new_token);
+                }
             }
 
-            println!();
-            for token in &token_list {
-                println!("{:?}", token);
+            //Step 0:: Match key words
+            for i in 0..self.token_list.len() {
+                match &self.token_list[i] {
+                    TokenKind::Variable(val) => {
+                        let value = val;
+                        if self.exempt_key_words.contains(&value.as_str()) {
+                            println!("@...{}", &value.as_str())
+                        }
+                    }
+                    TokenKind::Word(val) => {
+                        let value1 = val;
+                        if self.exempt_key_words.contains(&value1.as_str()) {
+                            println!("#...{}, {}", i, &value1.as_str());
+
+                            let token = TokenKind::KeyWord((&value1.as_str()).to_string());
+                            self.token_list.remove(i);
+                            self.token_list.insert(i, token);
+                            //break;
+                        }
+                    }
+                    TokenKind::Temp(val) => {
+                        let value = val;
+                        if self.exempt_key_words.contains(&value.as_str()) {
+                            println!("$...{}", &value.as_str())
+                        }
+                    }
+                    _ => {}
+                }
             }
 
-            token_list
+            Self {
+                current_token: self.current_token,
+                tokenizer: self.tokenizer,
+                node_list: self.node_list,
+                token_list: self.token_list,
+                exempt_key_words: self.exempt_key_words,
+            }
         }
 
-        /// Transforms the Parser's tokens into AST nodes
-        pub fn convert_to_ast_nodes(token_list: Vec<TokenKind>) -> Vec<crate::formula::ast::Node> {
+        /// Transforms the Parser's tokens into AST nodes,
+        pub fn convert_to_ast_nodes(mut self) -> Self {
             //
-            let mut node_list: Vec<crate::formula::ast::Node> = vec![];
-            for token in &token_list {
+            for token in &self.token_list {
                 match token {
                     TokenKind::Comment => {
                         let this = Node::Comment(Box::new(BNode {
                             value: '#'.to_string(),
                         }));
-                        node_list.push(this);
+                        self.node_list.push(this);
                     }
-                    TokenKind::CRLF => {}
-                    TokenKind::EOF => {}
-                    TokenKind::Latin(_) => {}
                     TokenKind::Letter(letter) => {
                         let this = Node::Letter(Box::new(BNode {
                             value: letter.clone(),
                         }));
-                        node_list.push(this);
+                        self.node_list.push(this);
                     }
                     TokenKind::Punctuation(punctuation) => {
                         let this = Node::Punctuation(Box::new(BNode {
                             value: punctuation.to_string(),
                         }));
-                        node_list.push(this);
+                        self.node_list.push(this);
                     }
-                    TokenKind::Digit(_) => {}
                     TokenKind::Number(number) => {
                         let this = Node::Number(Box::new(BNode {
                             value: number.to_string(),
                         }));
-                        node_list.push(this);
+                        self.node_list.push(this);
                     }
                     TokenKind::Variable(value) => {
                         let this = Node::Variable(Box::new(BNode {
                             value: value.to_string(),
                         }));
-                        node_list.push(this);
+                        self.node_list.push(this);
                     }
                     TokenKind::WhiteSpace => {
                         let this = Node::Punctuation(Box::new(BNode {
                             value: ' '.to_string(),
                         }));
-                        node_list.push(this);
+                        self.node_list.push(this);
                     }
                     TokenKind::Word(word) => {
                         let this = Node::Word(Box::new(BNode {
                             value: word.to_string(),
                         }));
-                        node_list.push(this);
+                        self.node_list.push(this);
                     }
                     TokenKind::Temp(value) => {
                         let this = Node::Variable(Box::new(BNode {
                             value: value.to_string(),
                         }));
-                        node_list.push(this);
+                        self.node_list.push(this);
                     }
                     TokenKind::Undefined => {}
+                    TokenKind::Latin(_) => {}
+                    TokenKind::Digit(_) => {}
+                    TokenKind::KeyWord(word) => {
+                        let this = Node::KeyWord(Box::new(BNode {
+                            value: word.to_string(),
+                        }));
+                        self.node_list.push(this);
+                    }
+                    TokenKind::CRLF => {}
+                    TokenKind::EOF => {}
                 }
             }
 
-            node_list
+            Self {
+                current_token: self.current_token,
+                tokenizer: self.tokenizer,
+                node_list: self.node_list,
+                token_list: self.token_list,
+                exempt_key_words: self.exempt_key_words,
+            }
         }
 
-        /// Takes a Vec<Node> and searches for all Node::Variable. Then transform those nodes
-        /// into Node::Assignment(_,_)
-        pub fn transform_nodes_to_assignment_nodes(node_list: Vec<Node>) -> Vec<Node> {
-            let mut ruby_template = node_list;
-
-            let mut exs = Parser::tmp_get_node_variable_delim(&ruby_template);
+        /// Takes a Vec<Node> and searches for all Node::Variable. Then transform those nodes into Node::Assignment(_,_)
+        pub fn transform_nodes_to_assignment_nodes(mut self) -> Self {
+            let mut exs = Parser::tmp_get_node_variable_delim(&self.node_list);
             println!("exs::{:?}", exs);
 
             while exs.found != false {
-                exs = Parser::tmp_get_node_variable_delim(&ruby_template);
+                exs = Parser::tmp_get_node_variable_delim(&self.node_list);
                 println!("exs::{:?}", exs);
 
                 //// Find node
@@ -246,88 +395,86 @@ pub mod parser {
                 //Step One, find Node::Variable and work backwards
                 let mut variable_index = 0;
                 let mut variable_value = "";
-                for i in 0..ruby_template.len() - 1 {
-                    match &ruby_template[i] {
-                        Node::Assignment(_, _) => {}
-                        Node::Comment(_) => {}
-                        Node::Letter(_) => {}
-                        Node::Number(_) => {}
-                        Node::Punctuation(_) => {}
-                        Node::Word(_) => {}
-                        Node::Variable(val) => {
-                            let b_node = val;
-                            variable_value = &b_node.value;
-                            println!("Node.value..{:?}", b_node);
-                            variable_index = i;
-                            break;
+                if exs.start != None {
+                    for i in exs.start.unwrap()..self.node_list.len() - 1 {
+                        match &self.node_list[i] {
+                            Node::Variable(val) => {
+                                let b_node = val;
+                                variable_value = &b_node.value;
+                                println!("Node.value..{:?}", b_node);
+                                variable_index = i;
+                                break;
+                            }
+                            _ => {}
                         }
                     }
+                    println!("index at {}", variable_index);
                 }
-                println!("index at {}", variable_index);
 
                 //Step Two, find corresponding Word or Letter
                 let mut node_index = 0;
                 let mut node_value = "";
                 for i in (0..=variable_index).rev() {
-                    match &ruby_template[i] {
-                        Node::Assignment(_, _) => {}
-                        Node::Comment(_) => {}
+                    match &self.node_list[i] {
                         Node::Letter(val) => {
                             let b_node = val;
                             node_value = &b_node.value;
                             node_index = i;
                             break;
                         }
-                        Node::Number(_) => {}
-                        Node::Punctuation(_) => {}
                         Node::Word(val) => {
                             let b_node = val;
                             node_value = &b_node.value;
                             node_index = i;
                             break;
                         }
-                        Node::Variable(_) => {}
+                        _ => {}
                     }
                 }
 
-                println!(
-                    "matching node is {}, {:?}",
-                    node_index, &ruby_template[node_index]
-                );
+                if variable_value != "" {
+                    println!(
+                        "matching node is {}, {:?}",
+                        node_index, &self.node_list[node_index]
+                    );
 
-                //Print node
-                let bn1 = BNode {
-                    value: node_value.to_string(),
-                };
-                let bn2 = BNode {
-                    value: variable_value.to_string(),
-                };
-                let box1 = Box::new(bn1);
-                let box2 = Box::new(bn2);
+                    //Print node
+                    let bn1 = BNode {
+                        value: node_value.to_string(),
+                    };
+                    let bn2 = BNode {
+                        value: variable_value.to_string(),
+                    };
+                    let box1 = Box::new(bn1);
+                    let box2 = Box::new(bn2);
 
-                let b_node = Node::Assignment(box1, box2);
+                    let b_node = Node::Assignment(box1, box2);
 
-                ruby_template.remove(variable_index); //TODO, remove the exta Whitespace but not urgent
-                ruby_template.remove(node_index);
-                ruby_template.insert(node_index, b_node);
+                    self.node_list.remove(variable_index); //TODO, remove the exta Whitespace but not urgent
+                    self.node_list.remove(node_index);
+                    self.node_list.insert(node_index, b_node);
+                }
             }
 
-            ruby_template
+            Self {
+                current_token: self.current_token,
+                tokenizer: self.tokenizer,
+                node_list: self.node_list,
+                token_list: self.token_list,
+                exempt_key_words: self.exempt_key_words,
+            }
         }
 
-        pub fn update_node_assignment(
-            mut node_list: Vec<Node>,
-            name: String,
-            new_value: String,
-        ) -> Vec<Node> {
+        /// Updates the value for an assignment node
+        pub fn update_node_assignment(mut self, name: String, new_value: String) -> Self {
             println!("pub update_node_assignment");
 
             let mut index = 0;
-            for i in 0..node_list.len() {
-                match &node_list[i] {
+            for i in 0..self.node_list.len() {
+                match &self.node_list[i] {
                     Node::Assignment(val, _) => {
-                        let bnode = val;
-                        if (bnode.value == name) {
+                        let b_node = val;
+                        if b_node.value == name {
                             println!("..______name::{} {:?}", i, name);
                             index = i;
                         }
@@ -336,7 +483,7 @@ pub mod parser {
                 }
             }
 
-            node_list.remove(index);
+            self.node_list.remove(index);
 
             let string_list = vec!["\"".to_string(), new_value, "\"".to_string()];
             let joined = string_list.join("");
@@ -349,9 +496,51 @@ pub mod parser {
                     value: joined.to_string(),
                 }),
             );
-            node_list.insert(index, node);
+            self.node_list.insert(index, node);
 
-            node_list
+            Self {
+                current_token: self.current_token,
+                tokenizer: self.tokenizer,
+                node_list: self.node_list,
+                token_list: self.token_list,
+                exempt_key_words: self.exempt_key_words,
+            }
+        }
+
+        pub fn print_tokens(self) -> Self {
+            //Display for testing purposes TOKEN_LIST
+            println!();
+            let mut i = 0;
+            for token in &self.token_list {
+                println!("{}. {:?}", i, token);
+                i += 1;
+            }
+
+            Self {
+                current_token: self.current_token,
+                tokenizer: self.tokenizer,
+                node_list: self.node_list,
+                token_list: self.token_list,
+                exempt_key_words: self.exempt_key_words,
+            }
+        }
+
+        pub fn print_nodes(self) -> Self {
+            //Display for testing purposes NODE_LIST
+            println!();
+            let mut i = 0;
+            for node in &self.node_list {
+                println!("{}. {:?}", i, node);
+                i += 1;
+            }
+
+            Self {
+                current_token: self.current_token,
+                tokenizer: self.tokenizer,
+                node_list: self.node_list,
+                token_list: self.token_list,
+                exempt_key_words: self.exempt_key_words,
+            }
         }
     }
 
@@ -470,137 +659,3 @@ pub mod parser {
         }
     }
 }
-
-/*
-
-        pub fn find_token_value_by_name(needle: TokenKind, token_list: Vec<TokenKind>) -> String {
-            let mut index = 0;
-            //let needle = TokenKind::Variable { raw: needle };
-
-            for i in 0..token_list.len() {
-                //println!("..{:?}", token_list[i]);
-
-                if token_list[i] == needle {
-                    println!("Found it at index {}", i);
-                    println!("Found {:?}", token_list[i]);
-                    index = i;
-                    break;
-                }
-            }
-
-            let stop1: TokenKind = TokenKind::CRLF;
-
-            let stop: TokenKind = TokenKind::Punctuation('"');
-
-            let mut flag_stop_1 = false; //change to true after stop 1, stop 2 is the second Punctuation('"')
-            let mut i = index; //index + next one //TODO index+1 or just index
-            let mut catcher: String = String::from("");
-            while let Some(token) = Some(&token_list[i]) {
-                match token {
-                    // TokenKind::Class { raw: val } => {
-                    //     catcher.push_str(val);
-                    // }
-                    // TokenKind::Variable { raw: val } => {
-                    //     catcher.push_str(val);
-                    // }
-                    // TokenKind::Punctuation(char) => {
-                    //     catcher.push(*char);
-                    // }
-                    // TokenKind::Value => {
-                    //     catcher.push('"');
-                    // }
-                    // TokenKind::Whitespace { raw: char, kind: _ } => {
-                    //     catcher.push(*char);
-                    // }
-                    // TokenKind::CRLF { raw: val, kind: _ } => {
-                    //     catcher.push_str(val);
-                    // }
-                    // TokenKind::Comment => {
-                    //     catcher.push('#');
-                    // }
-                    // TokenKind::Object(val) => {
-                    //     catcher.push_str(val);
-                    // }
-                    _ => {}
-                }
-                if flag_stop_1 && token == &stop {
-                    //println!("token at stop2::{:?}", token);
-                    //println!("..catcher::{}", catcher);
-
-                    break;
-                } else if token == &stop {
-                    //println!("token at stop1::{:?}", token);
-                    flag_stop_1 = true;
-                }
-                i += 1;
-            }
-
-            catcher
-        }
-
-        pub fn find_token(needle: String, token_list: Vec<TokenKind>) -> String {
-            let mut index = 0;
-            let needle = TokenKind::Variable { raw: needle };
-            for i in 0..token_list.len() {
-                //println!("..{:?}", token_list[i]);
-
-                if token_list[i] == needle {
-                    println!("Found it at index {}", i);
-                    println!("Found {:?}", token_list[i]);
-                    index = i;
-                    break;
-                }
-            }
-
-            let stop1: TokenKind = TokenKind::CRLF;
-
-            let stop: TokenKind = TokenKind::Punctuation('"');
-
-            let mut flag_stop_1 = false; //change to true after stop 1, stop 2 is the second Punctuation('"')
-            let mut i = index; //index + next one
-            let mut catcher: String = String::from("");
-            while let Some(token) = Some(&token_list[i]) {
-                match token {
-                    // TokenKind::Class { raw: val } => {
-                    //     catcher.push_str(val);
-                    // }
-                    // TokenKind::Variable { raw: val } => {
-                    //     catcher.push_str(val);
-                    // }
-                    // TokenKind::Punctuation(char) => {
-                    //     catcher.push(*char);
-                    // }
-                    // TokenKind::Value => {
-                    //     catcher.push('"');
-                    // }
-                    // TokenKind::Whitespace { raw: char, kind: _ } => {
-                    //     catcher.push(*char);
-                    // }
-                    // TokenKind::CRLF { raw: val, kind: _ } => {
-                    //     catcher.push_str(val);
-                    // }
-                    // TokenKind::Comment => {
-                    //     catcher.push('#');
-                    // }
-
-                    // TokenKind::Object(val) => {
-                    //     catcher.push_str(val);
-                    // }
-                    _ => {}
-                }
-                if flag_stop_1 && token == &stop {
-                    //println!("token at stop2::{:?}", token);
-                    //println!("..catcher::{}", catcher);
-                    break;
-                } else if token == &stop {
-                    //println!("token at stop1::{:?}", token);
-                    flag_stop_1 = true;
-                }
-                i += 1;
-            }
-
-            catcher
-        }
-
-
-*/

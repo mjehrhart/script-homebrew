@@ -1,22 +1,25 @@
 ///Token field and description for tokenizer (lexer)
+#[allow(dead_code)]
 #[derive(Debug, PartialEq, Clone, Eq, Hash)]
 pub enum TokenKind {
     Comment,
     CRLF,
+    Digit(u8),
     EOF,
+    KeyWord(String),
     Latin(char),
     Letter(String),
-    Punctuation(char),
-    Digit(u8),
     Number(String),
+    Punctuation(char),
+    Temp(String),
     Variable(String),
     WhiteSpace,
     Word(String),
-    Temp(String),
     Undefined,
 }
 
 ///Licenses type for brew create field 'License'
+#[allow(dead_code)]
 #[derive(Debug, PartialEq, Copy, Clone, Eq)]
 enum license {
     Appache_License_2_0,
