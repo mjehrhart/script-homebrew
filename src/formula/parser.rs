@@ -221,7 +221,7 @@ pub mod parser {
                 }
 
                 let mut flag_back_one = false;
-                for i in ((exs.start.unwrap() - 1)..self.token_list.len() - 1) {
+                for i in (exs.start.unwrap() - 1)..self.token_list.len() - 1 {
                     match Some(&self.token_list[i]) {
                         Some(TokenKind::Digit(num)) => {
                             catcher.push_str(&num.to_string());
@@ -250,9 +250,9 @@ pub mod parser {
                 }
 
                 //Remove tokens
-                let mut insert: Option<usize> = None;
+                //let mut insert: Option<usize> = None;
                 for i in (0..token_removal_indexer.len()).rev() {
-                    insert = Some(token_removal_indexer[i]);
+                    //insert = Some(token_removal_indexer[i]);
                     self.token_list.remove(token_removal_indexer[i]);
                 }
 
