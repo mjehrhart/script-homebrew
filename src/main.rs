@@ -35,6 +35,7 @@ fn main() -> Result<(), std::io::Error> {
         Ok(page) => {
             let mut parsie = formula::parser::parser::Parser::new(&page).unwrap();
 
+            //loop through char vecotr to populate the token_list
             for _c in page.chars() {
                 let y = parsie.get_next_token();
                 if y != enums::TokenKind::Undefined {
@@ -45,21 +46,22 @@ fn main() -> Result<(), std::io::Error> {
             let parsie = parsie
                 .parse_tokens()
                 .convert_to_ast_nodes()
-                //.transform_nodes_to_assignment_nodes()
-                // .update_node_assignment(String::from("desc"), String::from("my cool description!"))
-                // .update_node_assignment(
-                //     String::from("homepage"),
-                //     String::from("https://4.4.4.4/index.html"),
-                // )
-                // .update_node_assignment(
-                //     String::from("url"),
-                //     String::from("https://8.8.8.8/index.html"),
-                // )
+                .transform_nodes_to_assignment_nodes()
+                .transform_nodes_to_keyword_nodes()
+                .update_node_assignment(String::from("desc"), String::from("my cool description!"))
+                .update_node_assignment(
+                    String::from("homepage"),
+                    String::from("https://4.4.4.4/index.html"),
+                )
+                .update_node_assignment(
+                    String::from("url"),
+                    String::from("https://8.8.8.8/index.html"),
+                )
                 .print_tokens()
                 .print_nodes();
 
             //Write out the node_list instructions ( produces a text line)
-            let ruby_string = formula::ast::eval(parsie.node_list);
+            let ruby_string = formula::ast::eval_instruction_set(parsie.node_list);
             match ruby_string {
                 Ok(rs) => {
                     println!("\nruby_string:: {:?}", &rs);

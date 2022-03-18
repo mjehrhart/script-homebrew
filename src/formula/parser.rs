@@ -257,10 +257,12 @@ pub mod parser {
                 }
 
                 //Insert newly minted token
-                let new_token = TokenKind::Number(catcher); 
+
                 if flag_back_one {
-                    self.token_list.insert(exs.start.unwrap()-1, new_token);
+                    let new_token = TokenKind::Word(catcher);
+                    self.token_list.insert(exs.start.unwrap() - 1, new_token);
                 } else {
+                    let new_token = TokenKind::Number(catcher);
                     self.token_list.insert(exs.start.unwrap(), new_token);
                 }
             }
@@ -282,7 +284,7 @@ pub mod parser {
                             let token = TokenKind::KeyWord((&value1.as_str()).to_string());
                             self.token_list.remove(i);
                             self.token_list.insert(i, token);
-                            //break;
+                            //break; //TODO comment this out for looping
                         }
                     }
                     TokenKind::Temp(val) => {
@@ -340,9 +342,7 @@ pub mod parser {
                         self.node_list.push(this);
                     }
                     TokenKind::WhiteSpace => {
-                        let this = Node::Punctuation(Box::new(BNode {
-                            value: ' '.to_string(),
-                        }));
+                        let this = Node::WhiteSpace;
                         self.node_list.push(this);
                     }
                     TokenKind::Word(word) => {
@@ -383,11 +383,11 @@ pub mod parser {
         /// Takes a Vec<Node> and searches for all Node::Variable. Then transform those nodes into Node::Assignment(_,_)
         pub fn transform_nodes_to_assignment_nodes(mut self) -> Self {
             let mut exs = Parser::tmp_get_node_variable_delim(&self.node_list);
-            println!("exs::{:?}", exs);
+            //println!("exs::{:?}", exs);
 
             while exs.found != false {
                 exs = Parser::tmp_get_node_variable_delim(&self.node_list);
-                println!("exs::{:?}", exs);
+                //println!("exs::{:?}", exs);
 
                 //// Find node
 
@@ -401,7 +401,7 @@ pub mod parser {
                             Node::Variable(val) => {
                                 let b_node = val;
                                 variable_value = &b_node.value;
-                                println!("Node.value..{:?}", b_node);
+                                println!("-Node.value..{:?}", b_node);
                                 variable_index = i;
                                 break;
                             }
@@ -453,6 +453,129 @@ pub mod parser {
                     self.node_list.remove(variable_index); //TODO, remove the exta Whitespace but not urgent
                     self.node_list.remove(node_index);
                     self.node_list.insert(node_index, b_node);
+                }
+            }
+
+            Self {
+                current_token: self.current_token,
+                tokenizer: self.tokenizer,
+                node_list: self.node_list,
+                token_list: self.token_list,
+                exempt_key_words: self.exempt_key_words,
+            }
+        }
+
+        pub fn transform_nodes_to_keyword_nodes(mut self) -> Self {
+            fn tmp_get_node_keyword_delim(node_list: &Vec<Node>) -> ExpressionSplitter {
+                let mut flag = false;
+                let mut start = None;
+
+                for i in 0..node_list.len() {
+                    match Some(&node_list[i]) {
+                        Some(Node::KeyWord(_)) => {
+                            start = Some(i);
+                            flag = true;
+                            break;
+                        }
+                        Some(_) => {}
+                        None => {}
+                    }
+                }
+
+                ExpressionSplitter {
+                    found: flag,
+                    start: start,
+                    end: None,
+                }
+            }
+
+            println!("__ pub fn transform_nodes_to_keyword_nodes");
+
+            let mut exs = tmp_get_node_keyword_delim(&self.node_list);
+            while exs.found != false {
+                exs = tmp_get_node_keyword_delim(&self.node_list);
+
+                //// Find node
+                println!();
+                //Step One, find Node::Variable and work backwards
+                let mut variable_index = 0;
+                let mut variable_value = "";
+                if exs.start == None {
+                    break;
+                }
+
+                for i in exs.start.unwrap()..self.node_list.len() {
+                    match &self.node_list[i] {
+                        //
+                        Node::KeyWord(val) => {
+                            let b_node = val;
+                            variable_value = &b_node.value;
+                            println!("#### Keyword::Node.value..{:?}", b_node);
+                            variable_index = i;
+                            break;
+                        }
+                        _ => {}
+                    }
+                }
+                println!("index at {}", variable_index);
+
+                //Step Two, find corresponding Word or Letter
+                let mut node_index = 0;
+                let mut node_value = "";
+                for i in variable_index..self.node_list.len() {
+                    println!("i={:?}", i);
+                    match &self.node_list[i] {
+                        Node::Letter(val) => {
+                            let b_node = val;
+                            node_value = &b_node.value;
+                            node_index = i;
+                            println!("______Letter::Node.value..{:?}", b_node);
+                            println!("*i=={:?}", i);
+                            break;
+                        }
+                        Node::Word(val) => {
+                            let b_node = val;
+                            node_value = &b_node.value;
+                            println!("_______Word::Node.value..{:?}", b_node);
+                            println!("^i=={:?}", i);
+                            node_index = i;
+                            break;
+                        }
+                        node => {
+                            println!("_______others {:?}", node);
+                        }
+                    }
+                }
+
+                if variable_value != "" {
+                    println!(
+                        "matching Keyword variable is {}, {:?}",
+                        variable_index, &variable_value
+                    );
+
+                    println!(
+                        "matching letter/word node is {}, {:?}",
+                        node_index, &node_value
+                    );
+
+                    let bn1 = BNode {
+                        value: node_value.to_string(),
+                    };
+                    let bn2 = BNode {
+                        value: variable_value.to_string(),
+                    };
+                    let box1 = Box::new(bn1);
+                    let box2 = Box::new(bn2);
+                    let b_node = Node::Class(box2, box1);
+
+                    if &node_value != &"" {
+                        self.node_list.remove(node_index);
+                    }
+                    
+                    self.node_list.remove(variable_index);
+                    self.node_list.insert(variable_index, b_node);
+
+                     
                 }
             }
 
