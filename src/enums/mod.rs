@@ -1,5 +1,5 @@
 ///Token field and description for tokenizer (lexer)
-#[allow(dead_code)]
+#[allow(dead_code,clippy::upper_case_acronyms,clippy::enum_variant_names)]
 #[derive(Debug, PartialEq, Clone, Eq, Hash)]
 pub enum TokenKind {
     Comment,
@@ -19,7 +19,7 @@ pub enum TokenKind {
 }
 
 ///Licenses type for brew create field 'License'
-#[allow(dead_code)]
+#[allow(dead_code,clippy::upper_case_acronyms,clippy::enum_variant_names)]
 #[derive(Debug, PartialEq, Copy, Clone, Eq)]
 enum License {
     AppacheLicense2,

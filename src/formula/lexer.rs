@@ -1,10 +1,15 @@
 //!The lexer procceses the input converts to a vector of tokens
-#[allow(unused_variables, dead_code, non_camel_case_types, unused_imports)]
+#[allow(
+    unused_variables,
+    dead_code,
+    non_camel_case_types,
+    unused_imports,
+    clippy::module_inception
+)]
 pub mod lexer {
     use super::*;
     use crate::enums::TokenKind;
-    use crate::formula::controller;
-    use crate::formula::controller::ruby::get_tokenkind_map;
+    //use crate::formula::controller; 
 
     use std::any::type_name;
     use std::collections::HashMap;
@@ -17,6 +22,11 @@ pub mod lexer {
         expr: Peekable<Chars<'a>>,
     }
 
+    /// Example
+    /// ```
+    /// let exp = "Water is helpful"
+    /// let mut lexy = Tokenizer::new(exp);
+    /// ```
     impl<'a> Tokenizer<'a> {
         pub fn new(new_expr: &'a str) -> Self {
             Tokenizer {

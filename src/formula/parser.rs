@@ -1,6 +1,12 @@
 //!This is the primary workload for manipulating tokens and nodes
 
-#[allow(unused_variables, dead_code, non_camel_case_types, unused_imports)]
+#[allow(
+    unused_variables,
+    dead_code,
+    non_camel_case_types,
+    unused_imports,
+    clippy::module_inception
+)]
 pub mod parser {
     use super::*;
     use crate::enums::TokenKind;
@@ -29,10 +35,15 @@ pub mod parser {
     }
 
     impl<'a> Parser<'a> {
-        ///Creates a new Parser
+        /// Creates a new Parser instance.
+        /// Example
+        /// ```
+        /// let exp = "Water is helpful"
+        /// let mut parsie = formula::parser::parser::Parser::new(&exp);
+        /// ```
         pub fn new(exp: &'a str) -> Result<Self, String> {
             let mut lexy = Tokenizer::new(exp);
-            return match lexy.next() {
+            match lexy.next() {
                 None => Ok(Parser {
                     tokenizer: lexy,
                     current_token: TokenKind::Undefined,
@@ -131,10 +142,19 @@ pub mod parser {
                         "yield",
                     ],
                 }),
-            };
+            }
         }
 
         ///Gets the next token from the Parser
+        /// Example
+        /// ```
+        /// for _c in catcher.chars() {
+        ///   let y = parsie.get_next_token();
+        ///   if y != TokenKind::Undefined {
+        ///     token_list.push(y)
+        ///   }
+        /// }
+        /// ```
         pub fn get_next_token(&mut self) -> TokenKind {
             let next_token = match self.tokenizer.next() {
                 Some(token) => token,
@@ -145,10 +165,15 @@ pub mod parser {
         }
 
         ///Converts tokens to meaningful types and values
+        /// Example
+        /// ```
+        /// let parsie = parsie
+        ///     .parse_tokens()
+        /// ```
         pub fn parse_tokens(mut self) -> Self {
             //Step One::Searches for pair of " ", and remove those nodes after copying value;
             let mut exs = Parser::tmp_get_matching_delim(&self.token_list);
-            while exs.found != false {
+            while exs.found {
                 exs = Parser::tmp_get_matching_delim(&self.token_list);
 
                 if exs.found {
@@ -177,7 +202,7 @@ pub mod parser {
 
             //Step Two:: Searches for Words and Letters
             let mut exs = Parser::tmp_get_latin_delim(&self.token_list);
-            while exs.found != false {
+            while exs.found {
                 exs = Parser::tmp_get_latin_delim(&self.token_list);
 
                 if exs.found {
@@ -211,7 +236,7 @@ pub mod parser {
 
             //Step 3:: Searches for numbers
             let mut exs = Parser::tmp_get_number_delim(&self.token_list);
-            while exs.found != false {
+            while exs.found {
                 exs = Parser::tmp_get_number_delim(&self.token_list);
                 let mut token_removal_indexer: Vec<usize> = vec![];
                 let mut catcher = String::from("");
@@ -307,6 +332,12 @@ pub mod parser {
         }
 
         /// Transforms the Parser's tokens into AST nodes,
+        /// Example
+        /// ```
+        /// let parsie = parsie
+        ///     .parse_tokens()
+        ///     .convert_to_ast_nodes()
+        /// ```
         pub fn convert_to_ast_nodes(mut self) -> Self {
             //
             for token in &self.token_list {
@@ -381,11 +412,18 @@ pub mod parser {
         }
 
         /// Takes a Vec<Node> and searches for all Node::Variable. Then transform those nodes into Node::Assignment(_,_)
+        /// Example
+        /// ```
+        /// let parsie = parsie
+        ///     .parse_tokens()
+        ///     .convert_to_ast_nodes()
+        ///     .transform_nodes_to_assignment_nodes();
+        /// ```
         pub fn transform_nodes_to_assignment_nodes(mut self) -> Self {
             let mut exs = Parser::tmp_get_node_variable_delim(&self.node_list);
             //println!("exs::{:?}", exs);
 
-            while exs.found != false {
+            while exs.found {
                 exs = Parser::tmp_get_node_variable_delim(&self.node_list);
                 //println!("exs::{:?}", exs);
 
@@ -397,15 +435,22 @@ pub mod parser {
                 let mut variable_value = "";
                 if exs.start != None {
                     for i in exs.start.unwrap()..self.node_list.len() - 1 {
-                        match &self.node_list[i] {
-                            Node::Variable(val) => {
-                                let b_node = val;
-                                variable_value = &b_node.value;
-                                println!("-Node.value..{:?}", b_node);
-                                variable_index = i;
-                                break;
-                            }
-                            _ => {}
+                        // match &self.node_list[i] {
+                        //     Node::Variable(val) => {
+                        //         let b_node = val;
+                        //         variable_value = &b_node.value;
+                        //         println!("-Node.value..{:?}", b_node);
+                        //         variable_index = i;
+                        //         break;
+                        //     }
+                        //     _ => {}
+                        // }
+                        if let Node::Variable(val) = &self.node_list[i] {
+                            let b_node = val;
+                            variable_value = &b_node.value;
+                            println!("-Node.value..{:?}", b_node);
+                            variable_index = i;
+                            break;
                         }
                     }
                     println!("index at {}", variable_index);
@@ -432,7 +477,7 @@ pub mod parser {
                     }
                 }
 
-                if variable_value != "" {
+                if !variable_value.is_empty() {
                     println!(
                         "matching node is {}, {:?}",
                         node_index, &self.node_list[node_index]
@@ -465,12 +510,22 @@ pub mod parser {
             }
         }
 
+        /// Parses self.node_list for keywords and creates new nodes depending on value
+        /// Example
+        /// ```
+        /// let parsie = parsie
+        ///     .parse_tokens()
+        ///     .convert_to_ast_nodes()
+        ///     .transform_nodes_to_assignment_nodes()
+        ///     .transform_nodes_to_keyword_nodes();
+        /// ```
         pub fn transform_nodes_to_keyword_nodes(mut self) -> Self {
-            fn tmp_get_node_keyword_delim(node_list: &Vec<Node>) -> ExpressionSplitter {
+            fn tmp_get_node_keyword_delim(node_list: &[Node]) -> ExpressionSplitter {
                 let mut flag = false;
                 let mut start = None;
 
-                for i in 0..node_list.len() {
+                //for i in 0..node_list.len() {
+                for (i, node) in node_list.iter().enumerate() {
                     match Some(&node_list[i]) {
                         Some(Node::KeyWord(_)) => {
                             start = Some(i);
@@ -484,7 +539,7 @@ pub mod parser {
 
                 ExpressionSplitter {
                     found: flag,
-                    start: start,
+                    start,
                     end: None,
                 }
             }
@@ -492,7 +547,7 @@ pub mod parser {
             println!("__ pub fn transform_nodes_to_keyword_nodes");
 
             let mut exs = tmp_get_node_keyword_delim(&self.node_list);
-            while exs.found != false {
+            while exs.found {
                 exs = tmp_get_node_keyword_delim(&self.node_list);
 
                 //// Find node
@@ -505,16 +560,23 @@ pub mod parser {
                 }
 
                 for i in exs.start.unwrap()..self.node_list.len() {
-                    match &self.node_list[i] {
-                        //
-                        Node::KeyWord(val) => {
-                            let b_node = val;
-                            variable_value = &b_node.value;
-                            println!("#### Keyword::Node.value..{:?}", b_node);
-                            variable_index = i;
-                            break;
-                        }
-                        _ => {}
+                    // match &self.node_list[i] {
+                    //     //
+                    //     Node::KeyWord(val) => {
+                    //         let b_node = val;
+                    //         variable_value = &b_node.value;
+                    //         println!("#### Keyword::Node.value..{:?}", b_node);
+                    //         variable_index = i;
+                    //         break;
+                    //     }
+                    //     _ => {}
+                    // }
+                    if let Node::KeyWord(val) = &self.node_list[i] {
+                        let b_node = val;
+                        variable_value = &b_node.value;
+                        println!("#### Keyword::Node.value..{:?}", b_node);
+                        variable_index = i;
+                        break;
                     }
                 }
                 println!("index at {}", variable_index);
@@ -547,7 +609,7 @@ pub mod parser {
                     }
                 }
 
-                if variable_value != "" {
+                if !variable_value.is_empty() {
                     println!(
                         "matching Keyword variable is {}, {:?}",
                         variable_index, &variable_value
@@ -568,14 +630,12 @@ pub mod parser {
                     let box2 = Box::new(bn2);
                     let b_node = Node::Class(box2, box1);
 
-                    if &node_value != &"" {
+                    if !node_value.is_empty() {
                         self.node_list.remove(node_index);
                     }
-                    
+
                     self.node_list.remove(variable_index);
                     self.node_list.insert(variable_index, b_node);
-
-                     
                 }
             }
 
@@ -589,20 +649,36 @@ pub mod parser {
         }
 
         /// Updates the value for an assignment node
+        /// Example
+        /// ```
+        /// let parsie = parsie
+        ///     .parse_tokens()
+        ///     .convert_to_ast_nodes()
+        ///     .transform_nodes_to_assignment_nodes()
+        ///     .transform_nodes_to_keyword_nodes()
+        ///     .update_node_assignment(String::from("desc"), String::from("my cool description!"));
+        /// ```
         pub fn update_node_assignment(mut self, name: String, new_value: String) -> Self {
             println!("pub update_node_assignment");
 
             let mut index = 0;
             for i in 0..self.node_list.len() {
-                match &self.node_list[i] {
-                    Node::Assignment(val, _) => {
-                        let b_node = val;
-                        if b_node.value == name {
-                            println!("..______name::{} {:?}", i, name);
-                            index = i;
-                        }
+                // match &self.node_list[i] {
+                //     Node::Assignment(val, _) => {
+                //         let b_node = val;
+                //         if b_node.value == name {
+                //             println!("..______name::{} {:?}", i, name);
+                //             index = i;
+                //         }
+                //     }
+                //     _ => {}
+                // }
+                if let Node::Assignment(val, _) = &self.node_list[i] {
+                    let b_node = val;
+                    if b_node.value == name {
+                        println!("..______name::{} {:?}", i, name);
+                        index = i;
                     }
-                    _ => {}
                 }
             }
 
@@ -612,12 +688,8 @@ pub mod parser {
             let joined = string_list.join("");
 
             let node = Node::Assignment(
-                Box::new(BNode {
-                    value: name.to_string(),
-                }),
-                Box::new(BNode {
-                    value: joined.to_string(),
-                }),
+                Box::new(BNode { value: name }),
+                Box::new(BNode { value: joined }),
             );
             self.node_list.insert(index, node);
 
@@ -630,13 +702,19 @@ pub mod parser {
             }
         }
 
+        /// Prints the current Parser::token_list.
+        /// Usually, this is used in debugging and testing.
+        /// Example
+        /// ```
+        /// let parsie = parsie
+        ///     .parse_tokens()
+        ///     .convert_to_ast_nodes()
+        ///     .print_tokens();
+        /// ```
         pub fn print_tokens(self) -> Self {
-            //Display for testing purposes TOKEN_LIST
             println!();
-            let mut i = 0;
-            for token in &self.token_list {
+            for (i, token) in self.token_list.iter().enumerate() {
                 println!("{}. {:?}", i, token);
-                i += 1;
             }
 
             Self {
@@ -648,13 +726,19 @@ pub mod parser {
             }
         }
 
+        /// Prints the current Parser::node_list.
+        /// Usually, this is used in debugging and testing.
+        /// Example
+        /// ```
+        /// let parsie = parsie
+        ///     .parse_tokens()
+        ///     .convert_to_ast_nodes()
+        ///     .print_tokens();
+        /// ```
         pub fn print_nodes(self) -> Self {
-            //Display for testing purposes NODE_LIST
             println!();
-            let mut i = 0;
-            for node in &self.node_list {
+            for (i, node) in self.node_list.iter().enumerate() {
                 println!("{}. {:?}", i, node);
-                i += 1;
             }
 
             Self {
@@ -668,12 +752,18 @@ pub mod parser {
     }
 
     impl<'a> Parser<'a> {
-        /// Looks for Letters and Word tokens
-        fn tmp_get_node_variable_delim(node_list: &Vec<Node>) -> ExpressionSplitter {
+        /// Looks for Letters and Word nodes
+        /// Example
+        /// ```
+        /// let mut exs = Parser::tmp_get_node_variable_delim(&self.node_list);
+        /// while !exs.found {}
+        /// ```
+        fn tmp_get_node_variable_delim(node_list: &[Node]) -> ExpressionSplitter {
             let mut flag = false;
             let mut start = None;
 
-            for i in 0..node_list.len() {
+            //for i in 0..node_list.len() {
+            for (i, val) in node_list.iter().enumerate() {
                 match Some(&node_list[i]) {
                     Some(Node::Variable(_)) => {
                         start = Some(i);
@@ -687,20 +777,26 @@ pub mod parser {
 
             ExpressionSplitter {
                 found: flag,
-                start: start,
+                start,
                 end: None,
             }
         }
 
         /// Searches for mathgin Punctuation("'");
-        fn tmp_get_matching_delim(token_list: &Vec<TokenKind>) -> ExpressionSplitter {
+        /// Example
+        /// ```
+        /// let mut exs = Parser::tmp_get_matching_delim(&self.token_list);
+        /// while !exs.found {}
+        /// ```
+        fn tmp_get_matching_delim(token_list: &[TokenKind]) -> ExpressionSplitter {
             let symbol1 = TokenKind::Punctuation('"');
             let symbol2 = TokenKind::Punctuation('"');
 
             let flag = token_list.contains(&symbol1) && token_list.contains(&symbol2);
 
             let mut start = 0;
-            for i in 0..token_list.len() {
+            //for i in 0..token_list.len() {
+            for (i, val) in token_list.iter().enumerate() {
                 if symbol1 == token_list[i] {
                     start = i;
                     break;
@@ -708,7 +804,8 @@ pub mod parser {
             }
 
             let mut end = 0;
-            for i in start + 1..token_list.len() {
+            //for i in start + 1..token_list.len() {
+            for (i, val) in token_list.iter().enumerate().skip(start + 1) {
                 if symbol2 == token_list[i] {
                     end = i;
                     break;
@@ -722,10 +819,16 @@ pub mod parser {
         }
 
         /// Looks for Letters and Word tokens
-        fn tmp_get_latin_delim(token_list: &Vec<TokenKind>) -> ExpressionSplitter {
+        /// Example
+        /// ```
+        /// let mut exs = Parser::tmp_get_latin_delim(&self.token_list);
+        /// while !exs.found {}
+        /// ```
+        fn tmp_get_latin_delim(token_list: &[TokenKind]) -> ExpressionSplitter {
             let mut flag = false;
             let mut start = None;
-            for i in 0..token_list.len() {
+            //for i in 0..token_list.len() {
+            for (i, val) in token_list.iter().enumerate() {
                 match Some(&token_list[i]) {
                     Some(TokenKind::Latin(_)) => {
                         start = Some(i);
@@ -739,17 +842,23 @@ pub mod parser {
 
             ExpressionSplitter {
                 found: flag,
-                start: start,
+                start,
                 end: None,
             }
         }
 
         /// Forms numbers from tokens
-        fn tmp_get_number_delim(token_list: &Vec<TokenKind>) -> ExpressionSplitter {
+        /// Example
+        /// ```
+        /// let mut exs = Parser::tmp_get_number_delim(&self.token_list);
+        /// while !exs.found {}
+        /// ```
+        fn tmp_get_number_delim(token_list: &[TokenKind]) -> ExpressionSplitter {
             let mut flag = false;
             let mut start = None;
 
-            for i in 0..token_list.len() {
+            for (i, val) in token_list.iter().enumerate() {
+                //println!{"121 - {}, {:?}", i , val}
                 match Some(&token_list[i]) {
                     Some(TokenKind::Digit(_)) => {
                         start = Some(i);
@@ -763,7 +872,7 @@ pub mod parser {
 
             ExpressionSplitter {
                 found: flag,
-                start: start,
+                start,
                 end: None,
             }
         }
@@ -775,10 +884,119 @@ pub mod parser {
         use super::*;
 
         #[test]
+        fn test_current_token() {
+            let catcher = "Henry is a dog.".to_string();
+            let parsie = parser::Parser::new(&catcher).unwrap();
+            assert_eq!(parsie.current_token, TokenKind::Latin('H'));
+        }
+
+        #[test]
         fn test_tokenizer_next() {
-            let mut tokenizer = Tokenizer::new("catdog eats food");
-            let token = Some(TokenKind::Latin('c'));
+            let mut tokenizer = Tokenizer::new("Henry is a dog.");
+            let token = Some(TokenKind::Latin('H'));
             assert_eq!(tokenizer.next(), token)
+        }
+
+        #[test]
+        fn test_token_length() {
+            let catcher = "Henry is a dog.".to_string();
+            let mut token_list: Vec<TokenKind> = vec![];
+            let mut parsie = parser::Parser::new(&catcher).unwrap();
+
+            for _c in catcher.chars() {
+                let y = parsie.get_next_token();
+                if y != TokenKind::Undefined {
+                    token_list.push(y)
+                }
+            }
+
+            assert_eq!(14, token_list.len());
+        }
+
+        #[test]
+        fn test_parser_token_list() {
+            let catcher = "!class Temp henry is a catdog".to_string();
+            let mut parsie = formula::parser::parser::Parser::new(&catcher).unwrap();
+
+            for _c in catcher.chars() {
+                let y = parsie.get_next_token();
+                if y != crate::enums::TokenKind::Undefined {
+                    parsie.token_list.push(y)
+                }
+            }
+
+            let parsie = parsie
+                .parse_tokens()
+                .convert_to_ast_nodes()
+                .transform_nodes_to_assignment_nodes()
+                .transform_nodes_to_keyword_nodes()
+                //.update_node_assignment(String::from("desc"), String::from("my cool description!"))
+                .print_tokens()
+                .print_nodes();
+
+            let token = &parsie.token_list[0];
+            assert_eq!(token, &TokenKind::KeyWord("class".to_string()));
+
+            let token = &parsie.token_list[10];
+            assert_eq!(token, &TokenKind::Word("catdog".to_string()));
+        }
+
+        #[test]
+        fn test_parser_ast_node_list() {
+            let catcher = "!class Temp henry is a catdog".to_string();
+            let mut parsie = formula::parser::parser::Parser::new(&catcher).unwrap();
+
+            for _c in catcher.chars() {
+                let y = parsie.get_next_token();
+                if y != crate::enums::TokenKind::Undefined {
+                    parsie.token_list.push(y)
+                }
+            }
+
+            let parsie = parsie
+                .parse_tokens()
+                .convert_to_ast_nodes()
+                .transform_nodes_to_assignment_nodes()
+                .transform_nodes_to_keyword_nodes()
+                //.update_node_assignment(String::from("desc"), String::from("my cool description!"))
+                .print_tokens()
+                .print_nodes();
+
+            let node = &parsie.node_list[9];
+            //let node2 = Node::Word(Box::new(BNode {value: "catdog".to_string()}));
+
+            let mut temp: String = String::new();
+            match node {
+                Node::Word(word) => {
+                    let x = &*word;
+                    temp = x.value.clone();
+                }
+                _ => {}
+            }
+
+            assert_eq!(temp, "catdog".to_string());
+        }
+
+        #[test]
+        fn test_instruction_set_text() {
+            let catcher = "!class Temp henry is a catdog".to_string();
+            let mut parsie = formula::parser::parser::Parser::new(&catcher).unwrap();
+
+            for _c in catcher.chars() {
+                let y = parsie.get_next_token();
+                if y != crate::enums::TokenKind::Undefined {
+                    parsie.token_list.push(y)
+                }
+            }
+
+            let parsie = parsie
+                .parse_tokens()
+                .convert_to_ast_nodes()
+                .transform_nodes_to_assignment_nodes()
+                .transform_nodes_to_keyword_nodes();
+
+            let instruction_set = formula::ast::eval_instruction_set(parsie.node_list).unwrap();
+            assert_eq!(&instruction_set, "class Temp  henry is a catdog");
         }
     }
 }
