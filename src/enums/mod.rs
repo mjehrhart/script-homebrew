@@ -3,8 +3,13 @@
 #[derive(Debug, PartialEq, Clone, Eq, Hash)]
 pub enum TokenKind {
     Comment,
+    Comment_InLine,
+    Comment_Block_Start,
+    Comment_Block_Stop,
     CRLF,
-    Digit(u8),
+
+    Digital_Float(String), 
+    Digit(u32),
     EOF,
     KeyWord(String),
     Latin(char),
