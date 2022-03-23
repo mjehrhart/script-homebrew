@@ -1,21 +1,97 @@
 ///Token field and description for tokenizer (lexer)
-#[allow(dead_code,clippy::upper_case_acronyms,clippy::enum_variant_names)]
+#[allow(dead_code, clippy::upper_case_acronyms, clippy::enum_variant_names)]
+#[derive(Debug, PartialEq, Clone, Eq, Hash)]
+pub enum Token {
+    And,
+    AndAnd,
+    AndEq,
+    Argument(String),
+    At,
+    BracketLeft,
+    BracketRight,
+    Caret,
+    CaretEq,
+    Colon,
+    Comma,
+    CommentInLine(String),
+    CommentBlockStart(String),
+    CommentBlockStop(String),
+    CurlyBracketLeft,
+    CurlyBracketRight,
+    CRLF(String),
+    Dollar,
+    Dot,
+    DotDot,
+    Eq,
+    EqEq,
+    GreaterThanOrEqual,
+    Ge,
+    Gt,
+    FatArrow,
+    LessThanOrEqual,
+    Le,
+    Lt,
+    Minus,
+    MinusEq,
+    Or,
+    OrEq,
+    OrOr,
+    Not,
+    NotEq,
+    NumericFloat(String),
+    Numeric(usize),
+    ParenLeft,
+    ParenRight,
+    PathSep,
+    Percent,
+    PercentEq,
+    Plus,
+    PlusEq,
+    Pound,
+    Punctuation(String),
+    Question,
+    Reference(String),
+    Semi,
+    Shl,
+    Shr,
+    Slash,
+    SlashEq,
+    Star,
+    StarEq,
+    StatementDelimeter(String),
+    String(String),
+    Temp(String),
+    Temp2(String),
+    Undefined,
+    Underscore,
+    WhiteSpace,
+    Word(String),
+
+    Stopped(String), //for debugging
+}
+
+#[allow(dead_code, clippy::upper_case_acronyms, clippy::enum_variant_names)]
 #[derive(Debug, PartialEq, Clone, Eq, Hash)]
 pub enum TokenKind {
     Comment,
-    Comment_InLine,
-    Comment_Block_Start,
-    Comment_Block_Stop,
+    CommentInLine,
+    CommentBlockStart,
+    CommentBlockStop,
     CRLF,
 
-    Digital_Float(String), 
+    DigitFloat(String),
     Digit(u32),
     EOF,
     KeyWord(String),
     Latin(char),
     Letter(String),
+    CurlyLeft,
+    ParenLeft,
     Number(String),
+    Operator(String),
     Punctuation(char),
+    CurlyRight,
+    ParenRight,
     Temp(String),
     Variable(String),
     WhiteSpace,
@@ -24,7 +100,7 @@ pub enum TokenKind {
 }
 
 ///Licenses type for brew create field 'License'
-#[allow(dead_code,clippy::upper_case_acronyms,clippy::enum_variant_names)]
+#[allow(dead_code, clippy::upper_case_acronyms, clippy::enum_variant_names)]
 #[derive(Debug, PartialEq, Copy, Clone, Eq)]
 enum License {
     AppacheLicense2,

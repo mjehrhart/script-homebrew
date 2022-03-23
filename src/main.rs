@@ -69,28 +69,45 @@ fn main() -> Result<(), std::io::Error> {
 
     if let Ok(page) = this {
         let tmp = page.clone();
-        let parsie = interpeter::parser::parser::Parser::new(&tmp).unwrap();
 
-        let parsie = parsie
-            .intialize_tokens(page)
-            //.parse_tokens()
-            //.convert_to_ast_nodes()
-            //.construct_expression_nodes()
-            //.construct_keyword_nodes()
-            //.update_node_assignment(String::from("desc"), String::from("my cool description!"))
-            .print_tokens();
-            //.print_nodes();
+        let mut tokenizer = interpeter::lexer::lexer::Tokenizer::new(&tmp);
 
-        let instruction_set_text = interpeter::ast::eval_instruction_set(parsie.node_list);
+        let mut i = 0;
+        while let Some(token) = tokenizer.next() {
+            match Some(token) {
+                Some(t) => match t {
+                    enums::Token::Undefined => break,
+                    _ => {
+                        println!("{}. {:?}", i, t);
+                    }
+                },
+                None => break,
+            }
+            i += 1;
+        }
+
+        //let parsie = interpeter::parser::parser::Parser::new(&tmp).unwrap();
+
+        //let parsie = parsie
+        //.intialize_tokens(page)
+        //.parse_tokens()
+        //.convert_to_ast_nodes()
+        //.construct_expression_nodes()
+        //.construct_keyword_nodes()
+        //.update_node_assignment(String::from("desc"), String::from("my cool description!"))
+        //.print_tokens();
+        //.print_nodes();
+
+        //let instruction_set_text = interpeter::ast::eval_instruction_set(parsie.node_list);
 
         //Write out the node_list instructions ( creates a text page)
-        if let Ok(instruction_set) = instruction_set_text {
+        /* if let Ok(instruction_set) = instruction_set_text {
             // println!("\ninstruction_set:: {:?}", &instruction_set);
             // println!("\ninstruction_set:: {:?}", &instruction_set.len());
 
             let mut buffer = BufWriter::new(File::create("pmet.rb")?);
             buffer.write_all(instruction_set.as_bytes())?;
-        }
+        } */
         //*************************************************************************************************** */
         //*************************************************************************************************** */
         //Test 2
