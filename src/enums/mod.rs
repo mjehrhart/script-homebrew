@@ -4,7 +4,7 @@
 pub enum Token {
     And,
     AndAnd,
-    AndEq, 
+    AndEq,
     At,
     Backslash,
     BitCharacterCode7(String),
@@ -15,15 +15,16 @@ pub enum Token {
     BracketRight,
     BoolFalse,
     BoolTrue,
+    Byte(String),
+    ByteString(String),
     Caret,
     CaretEq,
     CarriageReturn,
     Character(String),
     Colon,
-    Comma, 
+    Comma,
     CurlyBraceLeft,
     CurlyBraceRight,
-    CRLF(String),
     Dollar,
     Dot,
     DotDot,
@@ -32,11 +33,9 @@ pub enum Token {
     DoubleQuote,
     Eq,
     EqEq,
-    GreaterThanOrEqual,
     Ge,
     Gt,
     FatArrow,
-    LessThanOrEqual,
     Le,
     LineComment(String),
     Lt,
@@ -59,23 +58,24 @@ pub enum Token {
     Plus,
     PlusEq,
     Pound,
-    Punctuation(String),
     Question,
     RArrow,
-    Reference(String),
+    RawString(String),
+    RawBinaryString(String),
     Semi,
     Shl,
+    ShlEq,
     Shr,
+    ShrEq,
     SingleQuote,
     Slash,
     SlashEq,
     Star,
     StarEq,
-    StatementDelimeter(String),
     String(String),
     Tab,
-    Temp(String),
-    Temp2(String),
+    Temp(String),  //for debugging
+    Temp2(String), //for debugging
     Undefined,
     Underscore,
     WhiteSpace,
@@ -83,6 +83,10 @@ pub enum Token {
 
     Stopped(String), //for debugging
 }
+
+#[allow(dead_code, clippy::upper_case_acronyms, clippy::enum_variant_names)]
+#[derive(Debug, PartialEq, Clone, Eq, Hash)]
+pub enum KeyWord {}
 
 #[allow(dead_code, clippy::upper_case_acronyms, clippy::enum_variant_names)]
 #[derive(Debug, PartialEq, Clone, Eq, Hash)]
