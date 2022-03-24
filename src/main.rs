@@ -77,6 +77,7 @@ fn main() -> Result<(), std::io::Error> {
             match Some(token) {
                 Some(t) => match t {
                     enums::Token::Undefined => break,
+                    enums::Token::WhiteSpace => {},
                     _ => {
                         println!("{}. {:?}", i, t);
                     }
