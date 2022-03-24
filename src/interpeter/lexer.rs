@@ -106,7 +106,7 @@ pub mod lexer {
                     let mut value = 'b'.to_string();
                     while let Some(peeking) = self.expr.peek() {
                         match Some(peeking) {
-                            // br#"hello"#
+                            // RawBinaryString(br#"hello"#)
                             Some('r') => {
                                 value.push('r');
                                 self.expr.next();
@@ -120,7 +120,7 @@ pub mod lexer {
                                                     Some('#') => {
                                                         value.push('#');
                                                         self.expr.next();
-                                                        return Some(Token::RawBinaryString(value));
+                                                        return Some(Token::RawByteString(value));
                                                     }
                                                     Some(cc) => {
                                                         value.push(*cc);
@@ -136,7 +136,7 @@ pub mod lexer {
                                 }
                                 break;
                             }
-                            // Byte()
+                            // Byte(b'H')
                             Some('\'') => {
                                 value.push('\'');
                                 self.expr.next();
@@ -155,6 +155,7 @@ pub mod lexer {
                                     }
                                 }
                             }
+                            // ByteString(b"Hello")
                             Some('\"') => {
                                 value.push('\"');
                                 self.expr.next();

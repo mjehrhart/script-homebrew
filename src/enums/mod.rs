@@ -61,7 +61,7 @@ pub enum Token {
     Question,
     RArrow,
     RawString(String),
-    RawBinaryString(String),
+    RawByteString(String),
     Semi,
     Shl,
     ShlEq,
