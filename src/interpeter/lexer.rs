@@ -204,6 +204,8 @@ pub mod lexer {
                             Some('<') => match Some(peeking) {
                                 Some('<') => {
                                     self.expr.next();
+
+                                    
                                     return Some(Token::Shl);
                                 }
                                 Some('=') => {
@@ -437,7 +439,7 @@ pub mod lexer {
 
                     Some(Token::Word(value))
                 }
-                // Character()
+                // dCharacter()
                 Some(c) => Some(Token::Character(c.to_string())),
                 None => return Some(Token::Undefined),
             }
