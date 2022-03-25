@@ -1,9 +1,9 @@
 #[allow(dead_code, unused_imports)]
 pub mod generic {
     use super::*;
-    use crate::enums::{self, Token,};
+    use crate::enums::{self, Token};
     use crate::interpeter::lexer::lexer::Tokenizer;
- 
+
     use std::any::type_name;
     use std::collections::HashMap;
     use std::fs::OpenOptions;
@@ -11,23 +11,28 @@ pub mod generic {
     use std::str::Chars;
     use std::vec::IntoIter;
 
-       /// Example
+    pub struct RawString {
+        pub found: bool,
+        pub kind: Token,
+    }
+
+    /// Example
     /// ```
     /// let exp = "Water is helpful"
     /// let mut lexy = Tokenizer::new(exp);
     /// ```
     impl<'a> Tokenizer<'a> {
         pub fn new(new_expr: &'a str) -> Self {
-            println!("Expression == {:?}", new_expr);
-            Tokenizer { 
-                expr: new_expr.chars().peekable(), 
+            println!("Expression == {:?}\n", new_expr);
+            Tokenizer {
+                expr: new_expr.chars().peekable(),
                 keywords: Self::load_keywords(),
             }
         }
 
         pub fn load_keywords() -> HashMap<&'a str, Token> {
             let mut map: HashMap<&'a str, Token> = HashMap::new();
- 
+
             map.insert("as", Token::KW_As);
             map.insert("async", Token::KW_Async);
             map.insert("await", Token::KW_Await);
@@ -36,7 +41,7 @@ pub mod generic {
             map.insert("continue", Token::KW_Contine);
             map.insert("crate", Token::KW_Crate);
             map.insert("dyn", Token::KW_Dyn);
-            map.insert("else", Token::KW_Else); 
+            map.insert("else", Token::KW_Else);
             map.insert("enum", Token::KW_Enum);
             map.insert("extern", Token::KW_Extern);
             map.insert("false", Token::KW_False);
@@ -46,7 +51,7 @@ pub mod generic {
             map.insert("impl", Token::KW_Impl);
             map.insert("in", Token::KW_In);
             map.insert("let", Token::KW_Let);
-            map.insert("loop", Token::KW_Loop); 
+            map.insert("loop", Token::KW_Loop);
             map.insert("match", Token::KW_Match);
             map.insert("mod", Token::KW_Mod);
             map.insert("move", Token::KW_Move);
@@ -55,9 +60,9 @@ pub mod generic {
             map.insert("ref", Token::KW_Ref);
             map.insert("return", Token::KW_Return);
             map.insert("Self", Token::KW_SELF);
-            map.insert("self", Token::KW_Self); 
+            map.insert("self", Token::KW_Self);
             map.insert("static", Token::KW_Static);
-            map.insert("struct", Token::KW_Struct); 
+            map.insert("struct", Token::KW_Struct);
             map.insert("super", Token::KW_Super);
             map.insert("trait", Token::KW_Trait);
             map.insert("true", Token::KW_True);
@@ -72,9 +77,8 @@ pub mod generic {
             map
         }
 
-        pub fn translate_token_to_keyword_token( token: &Token, value: String) ->  Option<Token>{
- 
-            match token { 
+        pub fn translate_token_to_keyword_token(token: &Token, value: String) -> Option<Token> {
+            match token {
                 Token::KW_As => Some(Token::KW_As),
                 Token::KW_Async => Some(Token::KW_Async),
                 Token::KW_Await => Some(Token::KW_Await),
@@ -83,21 +87,21 @@ pub mod generic {
                 Token::KW_Contine => Some(Token::KW_Contine),
                 Token::KW_Crate => Some(Token::KW_Crate),
                 Token::KW_Dyn => Some(Token::KW_Dyn),
-                Token::KW_Else => Some(Token::KW_Else),  
+                Token::KW_Else => Some(Token::KW_Else),
                 Token::KW_Enum => Some(Token::KW_Enum),
                 Token::KW_Extern => Some(Token::KW_Extern),
                 Token::KW_False => Some(Token::KW_False),
                 Token::KW_Fn => Some(Token::KW_Fn),
-                Token::KW_For => Some(Token::KW_For), 
+                Token::KW_For => Some(Token::KW_For),
                 Token::KW_If => Some(Token::KW_If),
                 Token::KW_Impl => Some(Token::KW_Impl),
                 Token::KW_In => Some(Token::KW_In),
                 Token::KW_Let => Some(Token::KW_Let),
                 Token::KW_Loop => Some(Token::KW_Loop),
-                Token::KW_Match =>Some(Token::KW_Match),
+                Token::KW_Match => Some(Token::KW_Match),
                 Token::KW_Mod => Some(Token::KW_Mod),
                 Token::KW_Move => Some(Token::KW_Move),
-                Token::KW_Mut => Some(Token::KW_Mut), 
+                Token::KW_Mut => Some(Token::KW_Mut),
                 Token::KW_Pub => Some(Token::KW_Pub),
                 Token::KW_Ref => Some(Token::KW_Ref),
                 Token::KW_Return => Some(Token::KW_Return),
@@ -114,15 +118,34 @@ pub mod generic {
                 Token::KW_Use => Some(Token::KW_Use),
                 Token::KW_Where => Some(Token::KW_Where),
                 Token::KW_While => Some(Token::KW_While),
-                _ => Some(Token::Word(value))
+                _ => Some(Token::Word(value)),
             }
         }
-        
+
         pub fn check_if_keyword(&mut self, potential_keyword: &str) -> Option<&Token> {
             let token = self.keywords.get(potential_keyword);
             token
         }
 
+        pub fn check_if_raw_string(value: &str) -> RawString {
+            
+            let re_raw_string = regex::Regex::new(r#"".+""#).unwrap();
+            //let raw_string = r#"hello"#;
+            let x = re_raw_string.is_match(&value);
+             
+
+            //let raw_byte_string = regex::Regex::new(br#"".+""#).unwrap();
+            //let raw_byte_string2 = br#"hello"#;
+            //let x = raw_byte_string.is_match(&value);
+
+            //let byte = b'H';
+            //let byte_string = b"hello";
+
+            RawString {
+                found: x,
+                kind: Token::RawString(value.to_string())
+            }
+        }
     }
 
     pub mod numeric {
@@ -134,8 +157,24 @@ pub mod generic {
             pub fn is_numeric_with_period(c: char) -> bool {
                 c.is_ascii_digit() || c == '.' || c == '_'
             }
+
+            pub fn is_math_operator(c: char) -> bool {
+                c == '+'
+                    || c == '-'
+                    || c == '*'
+                    || c == '/'
+                    || c == '%'
+                    || c == '^'
+                    || c == '!'
+                    || c == '&'
+                    || c == '|'
+                    || c == '='
+                    || c == ' '
+                    || c == '>'
+            }
         }
     }
+
     pub mod comment {
         use crate::interpeter::lexer::lexer::Tokenizer;
 
@@ -151,8 +190,15 @@ pub mod generic {
 
         impl<'a> Tokenizer<'a> {
             pub fn is_escaped(c: char) -> bool {
-                c == '\x41' || c == '\n' || c == '\r' || c == '\t' || c == '\\' || c == '\0' ||
-                c == '\x7F' || c == '\'' || c == '\"'
+                c == '\x41'
+                    || c == '\n'
+                    || c == '\r'
+                    || c == '\t'
+                    || c == '\\'
+                    || c == '\0'
+                    || c == '\x7F'
+                    || c == '\''
+                    || c == '\"'
             }
         }
     }
@@ -162,8 +208,15 @@ pub mod generic {
 
         impl<'a> Tokenizer<'a> {
             pub fn is_boolean(c: char) -> bool {
-                c == 't' || c == 'r' || c == 'u' || c == 'e' || c == 'f' || c == 'a' ||
-                c == 'l' || c == 's' || c == 'e'
+                c == 't'
+                    || c == 'r'
+                    || c == 'u'
+                    || c == 'e'
+                    || c == 'f'
+                    || c == 'a'
+                    || c == 'l'
+                    || c == 's'
+                    || c == 'e'
             }
         }
     }
@@ -197,7 +250,7 @@ pub mod generic {
             }
 
             pub fn is_word(c: char) -> bool {
-                c.is_alphanumeric() || c == '_'
+                c.is_alphanumeric() || c == '_' || c == '#' || c == '"'
             }
 
             pub fn is_reference(c: char) -> bool {
@@ -210,21 +263,6 @@ pub mod generic {
 
             pub fn is_fat_arrow(c: char) -> bool {
                 c == '='
-            }
-
-            pub fn is_math_operator(c: char) -> bool {
-                c == '+'
-                    || c == '-'
-                    || c == '*'
-                    || c == '/'
-                    || c == '%'
-                    || c == '^'
-                    || c == '!'
-                    || c == '&'
-                    || c == '|'
-                    || c == '='
-                    || c == ' '
-                    || c == '>'
             }
 
             pub fn starts_with_equal_sign(c: char) -> bool {

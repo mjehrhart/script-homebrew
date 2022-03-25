@@ -1,8 +1,13 @@
 use std::ops::Deref;
 
-///Token field and description for tokenizer (lexer)
-#[allow(dead_code, clippy::upper_case_acronyms, clippy::enum_variant_names, non_camel_case_types)]
-#[derive(Debug, PartialEq, Clone, Eq, Hash)]
+///Token field and description for lexical scanner
+#[allow(
+    dead_code,
+    clippy::upper_case_acronyms,
+    clippy::enum_variant_names,
+    non_camel_case_types
+)]
+#[derive(Debug, PartialEq, Clone, Eq)]
 pub enum Token {
     And,
     AndAnd,
@@ -76,13 +81,13 @@ pub enum Token {
     StarEq,
     String(String),
     Tab,
-    Temp(String),  //for debugging
-    Temp2(String), //for debugging
+    Temp(String),       //for debugging
+    Temp2(String),      //for debugging
     Undefined,
     Underscore,
     WhiteSpace,
     Word(String),
-    Stopped(String), //for debugging
+    Stopped(String),    //for debugging
     KW_As,
     KW_Async,
     KW_Await,
@@ -124,7 +129,6 @@ pub enum Token {
     KW_While,
 }
 
-
 impl Deref for Token {
     type Target = Token;
 
@@ -132,4 +136,3 @@ impl Deref for Token {
         &self
     }
 }
-  

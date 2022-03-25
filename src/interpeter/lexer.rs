@@ -28,37 +28,19 @@ pub mod lexer {
         type Item = Token;
 
         fn next(&mut self) -> Option<Token> {
+
+            println!("{:?}",self.expr.peek());
             let next_char = self.expr.next();
             //let x = self.expr.clone().count().to_string();
 
+            //Try this - peek into the value first and then consume
             match next_char {
-                // raw String
-                /* Some('r') => {
-                    //
-                    let mut value = 'r'.to_string();
+                // Sandbox()
+                Some(c) if Self::is_word(c) => {
+                    let mut value = c.to_string();
+                    //println!("Inside ::'{}'", value);
                     while let Some(peeking) = self.expr.peek() {
                         match Some(peeking) {
-                            // RawString
-                            Some('#') => {
-                                value.push('#');
-                                self.expr.next();
-                                while let Some(peek_again) = self.expr.peek() {
-                                    match Some(peek_again) {
-                                        Some('#') => {
-                                            value.push('#');
-                                            self.expr.next();
-                                            return Some(Token::RawString(value));
-                                        }
-                                        Some(cc) => {
-                                            value.push(*cc);
-                                            self.expr.next();
-                                        }
-                                        None => break,
-                                    }
-                                }
-                                break;
-                            }
-                            // Word - Catch All
                             Some(cc) if Self::is_word(*cc) => {
                                 value.push(*cc);
                                 self.expr.next();
@@ -70,102 +52,29 @@ pub mod lexer {
                         }
                     }
 
-                    println!("{} -> raw String", 1);
-                    Some(Token::Word(value))
-                } */
-                // Raw Binary String
-                /* Some('b') => {
-                    let mut value = 'b'.to_string();
-                    while let Some(peeking) = self.expr.peek() {
-                        match Some(peeking) {
-                            // RawBinaryString(br#"hello"#)
-                            Some('r') => {
-                                value.push('r');
-                                //self.expr.next();
-                                while let Some(peek_again) = self.expr.peek() {
-                                    match Some(peek_again) {
-                                        Some('#') => {
-                                            value.push('#');
-                                            self.expr.next();
-                                            self.expr.next();
-                                            while let Some(peek_again) = self.expr.peek() {
-                                                match Some(peek_again) {
-                                                    Some('#') => {
-                                                        value.push('#');
-                                                        self.expr.next();
-                                                        return Some(Token::RawByteString(value));
-                                                    }
-                                                    Some(cc) => {
-                                                        value.push(*cc);
-                                                        self.expr.next();
-                                                    }
-                                                    None => break,
-                                                }
-                                            }
-                                        }
-                                        Some(_) => break,
-                                        None => break,
-                                    }
-                                }
-                                break;
-                            }
-                            // Byte(b'H')
-                            Some('\'') => {
-                                value.push('\'');
-                                self.expr.next();
-                                while let Some(peek_again) = self.expr.peek() {
-                                    match Some(peek_again) {
-                                        Some('\'') => {
-                                            value.push('\'');
-                                            self.expr.next();
-                                            return Some(Token::Byte(value));
-                                        }
-                                        Some(cc) => {
-                                            value.push(*cc);
-                                            self.expr.next();
-                                        }
-                                        None => break,
-                                    }
-                                }
-                            }
-                            // ByteString(b"Hello")
-                            Some('\"') => {
-                                value.push('\"');
-                                self.expr.next();
-                                while let Some(peek_again) = self.expr.peek() {
-                                    match Some(peek_again) {
-                                        Some('\"') => {
-                                            value.push('\'');
-                                            self.expr.next();
-                                            return Some(Token::ByteString(value));
-                                        }
-                                        Some(cc) => {
-                                            value.push(*cc);
-                                            self.expr.next();
-                                        }
-                                        None => break,
-                                    }
-                                }
-                            }
+                    let raw_string = Tokenizer::check_if_raw_string(&value);
 
-                            // Word - Catch All
-                            Some(cc) if Self::is_word(*cc) => {
-                                value.push(*cc);
-                                self.expr.next();
-                            }
+                    if raw_string.found {
+                        //println!("{}", raw_string.found);
+                        let token = raw_string.kind;
+                        return Some(token);
+                    } else {
+                        let kw_token = self.check_if_keyword(&value);
+                        match kw_token {
                             Some(_) => {
-                                break;
+                                return Tokenizer::translate_token_to_keyword_token(
+                                    kw_token.unwrap(),
+                                    value,
+                                )
                             }
-                            None => break,
+                            None => return Some(Token::Word(value)),
                         }
                     }
+                }
 
-                    println!("{} -> Raw Binary String", 2);
-                    Some(Token::Word(value))
-                } */
+
                 // String Value
                 Some(c) if Self::is_string_value(c) => {
-                    //println!("Inside Some(c) if Self::is_string_value(c) => ");
                     let mut value = c.to_string();
                     while let Some(peeking) = self.expr.peek() {
                         match Some(peeking) {
@@ -456,15 +365,23 @@ pub mod lexer {
                         }
                     }
 
-                    let kw_token = self.check_if_keyword(&value);
-                    match kw_token {
-                        Some(_) => {
-                            return Tokenizer::translate_token_to_keyword_token(
-                                kw_token.unwrap(),
-                                value,
-                            )
+                    let raw_string = Tokenizer::check_if_raw_string(&value);
+
+                    if raw_string.found {
+                        //println!("{}", raw_string.found);
+                        let token = raw_string.kind;
+                        return Some(token);
+                    } else {
+                        let kw_token = self.check_if_keyword(&value);
+                        match kw_token {
+                            Some(_) => {
+                                return Tokenizer::translate_token_to_keyword_token(
+                                    kw_token.unwrap(),
+                                    value,
+                                )
+                            }
+                            None => return Some(Token::Word(value)),
                         }
-                        None => return Some(Token::Word(value)),
                     }
                 }
                 // dCharacter()
@@ -588,3 +505,135 @@ pub mod lexer {
 
 
 */
+
+// raw String
+/* Some('r') => {
+    //
+    let mut value = 'r'.to_string();
+    while let Some(peeking) = self.expr.peek() {
+        match Some(peeking) {
+            // RawString
+            Some('#') => {
+                value.push('#');
+                self.expr.next();
+                while let Some(peek_again) = self.expr.peek() {
+                    match Some(peek_again) {
+                        Some('#') => {
+                            value.push('#');
+                            self.expr.next();
+                            return Some(Token::RawString(value));
+                        }
+                        Some(cc) => {
+                            value.push(*cc);
+                            self.expr.next();
+                        }
+                        None => break,
+                    }
+                }
+                break;
+            }
+            // Word - Catch All
+            Some(cc) if Self::is_word(*cc) => {
+                value.push(*cc);
+                self.expr.next();
+            }
+            Some(_) => {
+                break;
+            }
+            None => break,
+        }
+    }
+
+    println!("{} -> raw String", 1);
+    Some(Token::Word(value))
+} */
+// Raw Binary String
+/* Some('b') => {
+    let mut value = 'b'.to_string();
+    while let Some(peeking) = self.expr.peek() {
+        match Some(peeking) {
+            // RawBinaryString(br#"hello"#)
+            Some('r') => {
+                value.push('r');
+                //self.expr.next();
+                while let Some(peek_again) = self.expr.peek() {
+                    match Some(peek_again) {
+                        Some('#') => {
+                            value.push('#');
+                            self.expr.next();
+                            self.expr.next();
+                            while let Some(peek_again) = self.expr.peek() {
+                                match Some(peek_again) {
+                                    Some('#') => {
+                                        value.push('#');
+                                        self.expr.next();
+                                        return Some(Token::RawByteString(value));
+                                    }
+                                    Some(cc) => {
+                                        value.push(*cc);
+                                        self.expr.next();
+                                    }
+                                    None => break,
+                                }
+                            }
+                        }
+                        Some(_) => break,
+                        None => break,
+                    }
+                }
+                break;
+            }
+            // Byte(b'H')
+            Some('\'') => {
+                value.push('\'');
+                self.expr.next();
+                while let Some(peek_again) = self.expr.peek() {
+                    match Some(peek_again) {
+                        Some('\'') => {
+                            value.push('\'');
+                            self.expr.next();
+                            return Some(Token::Byte(value));
+                        }
+                        Some(cc) => {
+                            value.push(*cc);
+                            self.expr.next();
+                        }
+                        None => break,
+                    }
+                }
+            }
+            // ByteString(b"Hello")
+            Some('\"') => {
+                value.push('\"');
+                self.expr.next();
+                while let Some(peek_again) = self.expr.peek() {
+                    match Some(peek_again) {
+                        Some('\"') => {
+                            value.push('\'');
+                            self.expr.next();
+                            return Some(Token::ByteString(value));
+                        }
+                        Some(cc) => {
+                            value.push(*cc);
+                            self.expr.next();
+                        }
+                        None => break,
+                    }
+                }
+            }
+
+            // Word - Catch All
+            Some(cc) if Self::is_word(*cc) => {
+                value.push(*cc);
+                self.expr.next();
+            }
+            Some(_) => {
+                break;
+            }
+            None => break,
+        }
+    }
+
+    println!("{} -> Raw Binary String", 2);
+    Some(Token::Word(value))
+} */

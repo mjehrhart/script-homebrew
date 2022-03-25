@@ -8,3 +8,5 @@ edition = "2021"
 [dependencies]
 flate2 = "1.0.22"               #compresses app.tar.gz
 tar = "0.4.38"
+regex = "1"
+
