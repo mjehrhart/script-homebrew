@@ -28,13 +28,13 @@ pub mod lexer {
         type Item = Token;
 
         fn next(&mut self) -> Option<Token> {
-
-            println!("{:?}",self.expr.peek());
+            println!("{:?}", self.expr.peek());
             let next_char = self.expr.next();
             //let x = self.expr.clone().count().to_string();
 
             //Try this - peek into the value first and then consume
             match next_char {
+                //testing for git
                 // Sandbox()
                 Some(c) if Self::is_word(c) => {
                     let mut value = c.to_string();
@@ -71,7 +71,6 @@ pub mod lexer {
                         }
                     }
                 }
-
 
                 // String Value
                 Some(c) if Self::is_string_value(c) => {
