@@ -8,7 +8,7 @@
 )]
 pub mod lexer {
     use super::*;
-    use crate::enums::{self, KeyWord, Token, TokenKind};
+    use crate::enums::{self, Token,};
     use crate::interpeter::map::*;
     //use crate::formula::controller;
 

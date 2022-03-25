@@ -133,7 +133,7 @@ impl Deref for Token {
     }
 }
  
-#[allow(dead_code, clippy::upper_case_acronyms, clippy::enum_variant_names)]
+/* #[allow(dead_code, clippy::upper_case_acronyms, clippy::enum_variant_names)]
 #[derive(Debug, PartialEq, Clone, Eq, Hash)]
 pub enum TokenKind {
     Comment,
@@ -160,7 +160,7 @@ pub enum TokenKind {
     WhiteSpace,
     Word(String),
     Undefined,
-}
+} */
 
 ///Licenses type for brew create field 'License'
 #[allow(dead_code, clippy::upper_case_acronyms, clippy::enum_variant_names)]
