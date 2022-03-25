@@ -8,7 +8,7 @@
 )]
 pub mod lexer {
     use super::*;
-    use crate::enums::{self, Token,};
+    use crate::enums::{self, Token};
     use std::any::type_name;
     use std::collections::HashMap;
     use std::fs::OpenOptions;
@@ -23,7 +23,7 @@ pub mod lexer {
         //pub keywords: [&'a str; 39],
         pub keywords: HashMap<&'a str, Token>,
     }
- 
+
     impl<'a> Iterator for Tokenizer<'a> {
         type Item = Token;
 
@@ -439,102 +439,6 @@ pub mod lexer {
 
                     Some(Token::Numeric(value))
                 }
-                // Bool true, false --> moved to keywords
-                /* Some(c) if Self::is_boolean(c) => {
-                    //
-                    let mut value = c.to_string();
-                    while let Some(peeking) = self.expr.peek() {
-                        if c == 't' {
-                            match Some(peeking) {
-                                Some('r') => {
-                                    value.push('r');
-                                    self.expr.next();
-                                    while let Some(peek_again) = self.expr.peek() {
-                                        match Some(peek_again) {
-                                            Some('u') => {
-                                                value.push('u');
-                                                self.expr.next();
-                                                while let Some(peek_again_again) = self.expr.peek()
-                                                {
-                                                    match Some(peek_again_again) {
-                                                        Some('e') => {
-                                                            value.push('e');
-                                                            self.expr.next();
-                                                            return Some(Token::BoolTrue);
-                                                        }
-                                                        Some(_) => break,
-                                                        None => break,
-                                                    }
-                                                }
-                                                break;
-                                            }
-                                            Some(_) => break,
-                                            None => break,
-                                        }
-                                    }
-                                    break;
-                                }
-                                Some(_) => break,
-                                None => break,
-                            }
-                        } else if c == 'f' {
-                            match Some(peeking) {
-                                Some('a') => {
-                                    value.push('a');
-                                    self.expr.next();
-                                    while let Some(peek_again) = self.expr.peek() {
-                                        match Some(peek_again) {
-                                            Some('l') => {
-                                                value.push('l');
-                                                self.expr.next();
-                                                while let Some(peek_again_again) = self.expr.peek()
-                                                {
-                                                    match Some(peek_again_again) {
-                                                        Some('s') => {
-                                                            value.push('s');
-                                                            self.expr.next();
-                                                            while let Some(peek_again_again) =
-                                                                self.expr.peek()
-                                                            {
-                                                                match Some(peek_again_again) {
-                                                                    Some('e') => {
-                                                                        value.push('e');
-                                                                        self.expr.next();
-                                                                        return Some(
-                                                                            Token::BoolFalse,
-                                                                        );
-                                                                    }
-                                                                    Some(_) => break,
-                                                                    None => break,
-                                                                }
-                                                            }
-                                                            break;
-                                                        }
-                                                        Some(_) => break,
-                                                        None => break,
-                                                    }
-                                                }
-                                                break;
-                                            }
-                                            Some(_) => break,
-                                            None => break,
-                                        }
-                                    }
-                                    break;
-                                }
-                                Some(_) => break,
-                                None => break,
-                            }
-                        } else {
-                            match Some(peeking) {
-                                Some(_) => break,
-                                None => break,
-                            }
-                        }
-                    }
-
-                    Some(Token::Temp2(value))
-                } */
                 // Word()
                 Some(c) if Self::is_word(c) => {
                     let mut value = c.to_string();
@@ -551,13 +455,17 @@ pub mod lexer {
                             None => break,
                         }
                     }
- 
+
                     let kw_token = self.check_if_keyword(&value);
-                    match kw_token{
-                        Some(_) => return Tokenizer::translate_token_to_keyword_token(kw_token.unwrap(), value),
+                    match kw_token {
+                        Some(_) => {
+                            return Tokenizer::translate_token_to_keyword_token(
+                                kw_token.unwrap(),
+                                value,
+                            )
+                        }
                         None => return Some(Token::Word(value)),
                     }
-  
                 }
                 // dCharacter()
                 Some(c) => Some(Token::Character(c.to_string())),
@@ -578,3 +486,105 @@ pub mod lexer {
         }
     }
 }
+
+/*
+
+// Bool true, false --> moved to keywords
+/* Some(c) if Self::is_boolean(c) => {
+    //
+    let mut value = c.to_string();
+    while let Some(peeking) = self.expr.peek() {
+        if c == 't' {
+            match Some(peeking) {
+                Some('r') => {
+                    value.push('r');
+                    self.expr.next();
+                    while let Some(peek_again) = self.expr.peek() {
+                        match Some(peek_again) {
+                            Some('u') => {
+                                value.push('u');
+                                self.expr.next();
+                                while let Some(peek_again_again) = self.expr.peek()
+                                {
+                                    match Some(peek_again_again) {
+                                        Some('e') => {
+                                            value.push('e');
+                                            self.expr.next();
+                                            return Some(Token::BoolTrue);
+                                        }
+                                        Some(_) => break,
+                                        None => break,
+                                    }
+                                }
+                                break;
+                            }
+                            Some(_) => break,
+                            None => break,
+                        }
+                    }
+                    break;
+                }
+                Some(_) => break,
+                None => break,
+            }
+        } else if c == 'f' {
+            match Some(peeking) {
+                Some('a') => {
+                    value.push('a');
+                    self.expr.next();
+                    while let Some(peek_again) = self.expr.peek() {
+                        match Some(peek_again) {
+                            Some('l') => {
+                                value.push('l');
+                                self.expr.next();
+                                while let Some(peek_again_again) = self.expr.peek()
+                                {
+                                    match Some(peek_again_again) {
+                                        Some('s') => {
+                                            value.push('s');
+                                            self.expr.next();
+                                            while let Some(peek_again_again) =
+                                                self.expr.peek()
+                                            {
+                                                match Some(peek_again_again) {
+                                                    Some('e') => {
+                                                        value.push('e');
+                                                        self.expr.next();
+                                                        return Some(
+                                                            Token::BoolFalse,
+                                                        );
+                                                    }
+                                                    Some(_) => break,
+                                                    None => break,
+                                                }
+                                            }
+                                            break;
+                                        }
+                                        Some(_) => break,
+                                        None => break,
+                                    }
+                                }
+                                break;
+                            }
+                            Some(_) => break,
+                            None => break,
+                        }
+                    }
+                    break;
+                }
+                Some(_) => break,
+                None => break,
+            }
+        } else {
+            match Some(peeking) {
+                Some(_) => break,
+                None => break,
+            }
+        }
+    }
+
+    Some(Token::Temp2(value))
+} */
+
+
+*/
