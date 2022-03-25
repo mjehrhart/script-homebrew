@@ -3,9 +3,7 @@ pub mod generic {
     use super::*;
     use crate::enums::{self, TokenKind};
     use crate::interpeter::lexer::lexer::Tokenizer;
-    //use crate::formula::controller;
-
-    //use super::Tokenizer;
+ 
     use std::any::type_name;
     use std::collections::HashMap;
     use std::fs::OpenOptions;
@@ -20,7 +18,7 @@ pub mod generic {
 
         impl<'a> Tokenizer<'a> {
             pub fn is_numeric_with_period(c: char) -> bool {
-                c.is_ascii_digit() || c == '.'
+                c.is_ascii_digit() || c == '.' || c == '_'
             }
         }
     }

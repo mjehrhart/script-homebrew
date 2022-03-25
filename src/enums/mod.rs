@@ -1,5 +1,7 @@
+use std::ops::Deref;
+
 ///Token field and description for tokenizer (lexer)
-#[allow(dead_code, clippy::upper_case_acronyms, clippy::enum_variant_names)]
+#[allow(dead_code, clippy::upper_case_acronyms, clippy::enum_variant_names, non_camel_case_types)]
 #[derive(Debug, PartialEq, Clone, Eq, Hash)]
 pub enum Token {
     And,
@@ -49,7 +51,7 @@ pub enum Token {
     NotEq,
     Null,
     Floating(String),
-    Numeric(usize),
+    Numeric(String),
     ParenLeft,
     ParenRight,
     PathSep,
@@ -80,14 +82,57 @@ pub enum Token {
     Underscore,
     WhiteSpace,
     Word(String),
-
     Stopped(String), //for debugging
+    KW_As,
+    KW_Async,
+    KW_Await,
+    KW_Break,
+    KW_Const,
+    KW_Contine,
+    KW_Crate,
+    KW_Dyn,
+    KW_Else,
+    KW_Enum,
+    KW_Extern,
+    KW_False,
+    KW_Fn,
+    KW_For,
+    KW_If,
+    KW_Impl,
+    KW_In,
+    KW_Let,
+    KW_Loop,
+    KW_Match,
+    KW_Mod,
+    KW_Move,
+    KW_Mut,
+    KW_Pub,
+    KW_Ref,
+    KW_Return,
+    KW_SELF,
+    KW_Self,
+    KW_Static,
+    KW_Struct,
+    KW_Super,
+    KW_Trait,
+    KW_True,
+    KW_Type,
+    KW_Union,
+    KW_Unsafe,
+    KW_Use,
+    KW_Where,
+    KW_While,
 }
 
-#[allow(dead_code, clippy::upper_case_acronyms, clippy::enum_variant_names)]
-#[derive(Debug, PartialEq, Clone, Eq, Hash)]
-pub enum KeyWord {}
 
+impl Deref for Token {
+    type Target = Token;
+
+    fn deref(&self) -> &Self::Target {
+        &self
+    }
+}
+ 
 #[allow(dead_code, clippy::upper_case_acronyms, clippy::enum_variant_names)]
 #[derive(Debug, PartialEq, Clone, Eq, Hash)]
 pub enum TokenKind {
