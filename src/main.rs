@@ -73,10 +73,10 @@ fn main() -> Result<(), std::io::Error> {
     if let Ok(page) = this {
         let tmp = page.clone();
 
-        let mut tokenizer = interpeter::lexer::lexer::Tokenizer::new(&tmp);
-
+        let tokenizer = interpeter::lexer::lexer::Tokenizer::new(&tmp);
         let mut i = 0;
-        while let Some(token) = tokenizer.next() {
+        //while let Some(token) = tokenizer.next() {
+        for token in tokenizer {
             match Some(token) {
                 Some(t) => match t {
                     enums::Token::Undefined => break,
@@ -89,7 +89,7 @@ fn main() -> Result<(), std::io::Error> {
             }
             i += 1;
 
-            if i > 100 {
+            if i > 1000 {
                 break;
             }
         }

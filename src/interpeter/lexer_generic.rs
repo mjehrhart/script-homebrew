@@ -18,12 +18,12 @@ pub mod generic {
 
     /// Example
     /// ```
-    /// let exp = "Water is helpful"
+    /// let exp = "Water is helpful!"
     /// let mut lexy = Tokenizer::new(exp);
     /// ```
     impl<'a> Tokenizer<'a> {
         pub fn new(new_expr: &'a str) -> Self {
-            println!("Expression == {:?}\n", new_expr);
+            //println!("Expression == {:?}\n", new_expr);
             Tokenizer {
                 expr: new_expr.chars().peekable(),
                 keywords: Self::load_keywords(),
@@ -130,7 +130,7 @@ pub mod generic {
         pub fn check_if_raw_string(value: &str) -> RawString {
             let re_raw_string = regex::Regex::new(r#"".+""#).unwrap();
             //let raw_string = r#"hello"#;
-            let x = re_raw_string.is_match(&value);
+            let x = re_raw_string.is_match(value);
 
             //let raw_byte_string = regex::Regex::new(br#"".+""#).unwrap();
             //let raw_byte_string2 = br#"hello"#;
@@ -240,11 +240,11 @@ pub mod generic {
                             value.push('-');
                         }
                         Some('*') => {
-                            if value == "::"{
+                            if value == "::" {
                                 break;
                             } else {
-                            expression.next();
-                            value.push('*');
+                                expression.next();
+                                value.push('*');
                             }
                         }
                         Some('/') => {
@@ -272,64 +272,57 @@ pub mod generic {
                             expression.next();
                             value.push('!');
                         }
-                        // working on this section
-                        // Some(c) if Self::is_word(*c) => {
-                        //     let cc = c.to_string();
-                        //     expression.next();
-                        //     value.push_str(&cc);
-                        // }
-                        Some(c) => {
-                            //println!("___________ '{}'", *c);
+                        Some(_) => {
                             break;
                         }
                         None => break,
                     }
-                } 
+                }
                 match Some(value.as_str()) {
-                    Some("=") => return (Some(Token::Eq), 1),
-                    Some(":") => return (Some(Token::Colon), 1),
-                    Some("::") => return (Some(Token::PathSep), 2),
-                    Some(">") => return (Some(Token::Gt), 1),
-                    Some(">=") => return (Some(Token::Ge), 2),
-                    Some(">>") => return (Some(Token::Shr), 2),
-                    Some("<") => return (Some(Token::Lt), 1),
-                    Some("<=") => return (Some(Token::Le), 2),
-                    Some("<<") => return (Some(Token::Shl), 2),
-                    Some("=>") => return (Some(Token::FatArrow), 2),
+                    Some("=") => (Some(Token::Eq), 1),
+                    Some(":") => (Some(Token::Colon), 1),
+                    Some("::") => (Some(Token::PathSep), 2),
+                    Some(">") => (Some(Token::Gt), 1),
+                    Some(">=") => (Some(Token::Ge), 2),
+                    Some(">>") => (Some(Token::Shr), 2),
+                    Some("<") => (Some(Token::Lt), 1),
+                    Some("<=") => (Some(Token::Le), 2),
+                    Some("<<") => (Some(Token::Shl), 2),
+                    Some("=>") => (Some(Token::FatArrow), 2),
 
                     // Some(".") => return (Some(Token::Dot), 1),
                     // Some("..") => return (Some(Token::DotDot), 2),
                     // Some("...") => return (Some(Token::DotDotDot), 3),
-                    // Some("..=") => return (Some(Token::DotDotEq), 3), 
-                    Some("+=") => return (Some(Token::PlusEq), 2),
-                    Some("-=") => return (Some(Token::MinusEq), 2),
-                    Some("*=") => return (Some(Token::StarEq), 2),
-                    Some("/=") => return (Some(Token::SlashEq), 2),
-                    Some("%=") => return (Some(Token::PercentEq), 2),
-                    Some("^=") => return (Some(Token::CaretEq), 2),
+                    // Some("..=") => return (Some(Token::DotDotEq), 3),
+                    Some("+=") => (Some(Token::PlusEq), 2),
+                    Some("-=") => (Some(Token::MinusEq), 2),
+                    Some("*=") => (Some(Token::StarEq), 2),
+                    Some("/=") => (Some(Token::SlashEq), 2),
+                    Some("%=") => (Some(Token::PercentEq), 2),
+                    Some("^=") => (Some(Token::CaretEq), 2),
 
-                    Some("&=") => return (Some(Token::AndEq), 2),
-                    Some("|=") => return (Some(Token::OrEq), 2),
-                    Some("==") => return (Some(Token::EqEq), 2),
-                    Some("!=") => return (Some(Token::NotEq), 2), 
-                    Some("+") => return (Some(Token::Plus), 1),
-                    Some("-") => return (Some(Token::Minus), 1),
-                    Some("*") => return (Some(Token::Star), 1),
-                    Some("/") => return (Some(Token::Slash), 1),
-                    Some("%") => return (Some(Token::Percent), 1),
-                    Some("^") => return (Some(Token::Caret), 1),
+                    Some("&=") => (Some(Token::AndEq), 2),
+                    Some("|=") => (Some(Token::OrEq), 2),
+                    Some("==") => (Some(Token::EqEq), 2),
+                    Some("!=") => (Some(Token::NotEq), 2),
+                    Some("+") => (Some(Token::Plus), 1),
+                    Some("-") => (Some(Token::Minus), 1),
+                    Some("*") => (Some(Token::Star), 1),
+                    Some("/") => (Some(Token::Slash), 1),
+                    Some("%") => (Some(Token::Percent), 1),
+                    Some("^") => (Some(Token::Caret), 1),
 
-                    Some("&") => return (Some(Token::And), 1),
-                    Some("&&") => return (Some(Token::AndAnd), 2),
-                    Some("|") => return (Some(Token::Or), 1),
-                    Some("||") => return (Some(Token::OrOr), 2),
-                    Some("!") => return (Some(Token::Not), 1), 
-                    Some("//") => return (Some(Token::LineComment("//".to_string())), 2),
-                    Some("/*") => return (Some(Token::BlockCommentStart("/*".to_string())), 2),
-                    Some("*/") => return (Some(Token::BlockCommentStop("*/".to_string())), 2),
+                    Some("&") => (Some(Token::And), 1),
+                    Some("&&") => (Some(Token::AndAnd), 2),
+                    Some("|") => (Some(Token::Or), 1),
+                    Some("||") => (Some(Token::OrOr), 2),
+                    Some("!") => (Some(Token::Not), 1),
+                    Some("//") => (Some(Token::LineComment("//".to_string())), 2),
+                    Some("/*") => (Some(Token::BlockCommentStart("/*".to_string())), 2),
+                    Some("*/") => (Some(Token::BlockCommentStop("*/".to_string())), 2),
                     //
-                    Some(_) => return (Some(Token::Stopped(value.clone())), value.len()),
-                    None => return (Some(Token::Undefined), 0),
+                    Some(_) => (Some(Token::Stopped(value.clone())), value.len()),
+                    None => (Some(Token::Undefined), 0),
                 }
             }
 
@@ -377,4 +370,3 @@ pub mod generic {
         }
     }
 }
- 

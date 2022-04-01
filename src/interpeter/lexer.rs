@@ -60,39 +60,39 @@ pub mod lexer {
                     //Some('\x7F') => return Some(Token::BitCharacterCode8(c.to_string())),
                     Some('\n') => {
                         self.expr.next();
-                        return Some(Token::Newline);
+                        Some(Token::Newline)
                     }
                     Some('\r') => {
                         self.expr.next();
-                        return Some(Token::CarriageReturn);
+                        Some(Token::CarriageReturn)
                     }
                     Some('\t') => {
                         self.expr.next();
-                        return Some(Token::Tab);
+                        Some(Token::Tab)
                     }
                     Some('\\') => {
                         self.expr.next();
-                        return Some(Token::Backslash);
+                        Some(Token::Backslash)
                     }
                     Some('\0') => {
                         self.expr.next();
-                        return Some(Token::Null);
+                        Some(Token::Null)
                     }
                     Some('\'') => {
                         self.expr.next();
-                        return Some(Token::SingleQuote);
+                        Some(Token::SingleQuote)
                     }
                     Some('\"') => {
                         self.expr.next();
-                        return Some(Token::DoubleQuote);
+                        Some(Token::DoubleQuote)
                     }
                     Some(_) => {
                         self.expr.next();
-                        return Some(Token::Undefined);
+                        Some(Token::Undefined)
                     }
                     None => {
                         self.expr.next();
-                        return Some(Token::Undefined);
+                        Some(Token::Undefined)
                     }
                 },
                 // (5) Numeric, . .. ... ..=
@@ -127,7 +127,6 @@ pub mod lexer {
                     Some(Token::Numeric(value))
                 }
                 // (34) = : :: > >= >> < <= << => += -= *= /= &= ^= &= |= == != + - * / % ^ & && | || ! // /* */
-                // TODO Token::Stopped("::*")
                 Some(c) if Self::is_punctuation(*c) => {
                     let (token, next_this_times) =
                         Self::next_punctuation(c.to_string(), self.expr.clone());
@@ -136,41 +135,41 @@ pub mod lexer {
                     for i in 0..next_this_times {
                         self.expr.next();
                     }
-                    return token;
+                    token
                 }
                 // (6) {}[]()
                 Some(c) if Self::bracket_delimiters(*c) => match Some(c) {
                     Some('{') => {
                         self.expr.next();
-                        return Some(Token::CurlyBraceLeft);
+                        Some(Token::CurlyBraceLeft)
                     }
                     Some('}') => {
                         self.expr.next();
-                        return Some(Token::CurlyBraceRight);
+                        Some(Token::CurlyBraceRight)
                     }
                     Some('[') => {
                         self.expr.next();
-                        return Some(Token::BracketLeft);
+                        Some(Token::BracketLeft)
                     }
                     Some(']') => {
                         self.expr.next();
-                        return Some(Token::BracketRight);
+                        Some(Token::BracketRight)
                     }
                     Some('(') => {
                         self.expr.next();
-                        return Some(Token::ParenLeft);
+                        Some(Token::ParenLeft)
                     }
                     Some(')') => {
                         self.expr.next();
-                        return Some(Token::ParenRight);
+                        Some(Token::ParenRight)
                     }
                     Some(_) => {
                         //self.expr.next();
-                        return Some(Token::Undefined);
+                        Some(Token::Undefined)
                     }
                     None => {
                         //self.expr.next();
-                        return Some(Token::Undefined);
+                        Some(Token::Undefined)
                     }
                 },
                 // Word()
@@ -183,16 +182,25 @@ pub mod lexer {
                                 value.push(*cc);
                                 self.expr.next();
                             }
-                            // Some(' ')  => {
-                            //     break;
-                            // }
                             Some(_) => {
                                 break;
                             }
                             None => break,
                         }
+                    } 
+
+                    let toak = Tokenizer::new("");
+                    let flag = toak.keywords.get(&*value);
+                    match flag {
+                        Some(_) => {
+                            let token = Self::translate_token_to_keyword_token(
+                                flag.unwrap(),
+                                value.to_string(),
+                            );
+                            Some(token.unwrap())
+                        }
+                        None => Some(Token::Word(value)),
                     }
-                    return Some(Token::Word(value));
                 }
                 // Catch All
                 Some(c) => {
@@ -200,7 +208,7 @@ pub mod lexer {
                     self.expr.next();
                     Some(Token::Character(value))
                 }
-                None => return Some(Token::Undefined),
+                None => Some(Token::Undefined),
             }
         }
     }
@@ -211,9 +219,39 @@ pub mod lexer {
         use super::*;
 
         #[test]
-        fn test_tokenizer() {
-            let mut tokenizer = Tokenizer::new("Water");
-            //assert_eq!(tokenizer.next().unwrap(), TokenKind::Latin('W'))
+        fn test_next_tokenizer() {
+            let mut tokenizer = Tokenizer::new("Water is healthy!");
+            assert_eq!(tokenizer.next().unwrap(), Token::Word("Water".to_string()));
+            assert_eq!(tokenizer.next().unwrap(), Token::WhiteSpace);
+            assert_eq!(tokenizer.next().unwrap(), Token::Word("is".to_string()));
+            assert_eq!(tokenizer.next().unwrap(), Token::WhiteSpace);
+            assert_eq!(
+                tokenizer.next().unwrap(),
+                Token::Word("healthy".to_string())
+            );
+            assert_eq!(tokenizer.next().unwrap(), Token::Not);
+        }
+
+        #[test]
+        fn test_punctuation_tokenizer() {
+            let mut tokenizer = Tokenizer::new("use super::*;");
+            assert_eq!(tokenizer.next().unwrap(), Token::KW_Use);
+            assert_eq!(tokenizer.next().unwrap(), Token::WhiteSpace);
+            assert_eq!(tokenizer.next().unwrap(), Token::KW_Super);
+            assert_eq!(tokenizer.next().unwrap(), Token::PathSep);
+            assert_eq!(tokenizer.next().unwrap(), Token::Star);
+            assert_eq!(tokenizer.next().unwrap(), Token::Character(';'.to_string()));
+        }
+
+        #[test]
+        fn test_numeric_tokenizer() {
+            let mut tokenizer = Tokenizer::new("200 404.4");
+            assert_eq!(tokenizer.next().unwrap(), Token::Numeric("200".to_string()));
+            assert_eq!(tokenizer.next().unwrap(), Token::WhiteSpace);
+            assert_eq!(
+                tokenizer.next().unwrap(),
+                Token::Floating("404.4".to_string())
+            );
         }
     }
 }
