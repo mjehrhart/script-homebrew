@@ -18,17 +18,17 @@ pub mod lexer {
 
     #[derive(Debug, Clone)]
     pub struct Tokenizer<'a> {
-        pub expr: Peekable<Chars<'a>>, 
+        pub expr: Peekable<Chars<'a>>,
         pub keywords: HashMap<&'a str, Token>,
     }
 
     impl<'a> Iterator for Tokenizer<'a> {
         type Item = Token;
 
-        fn next(&mut self) -> Option<Token> { 
-            let next_char = self.expr.peek(); 
+        fn next(&mut self) -> Option<Token> {
+            let next_char = self.expr.peek();
             match next_char {
-                // String Value
+                // (1) String Value
                 Some(c) if Self::starts_with_double_quote(*c) => {
                     let mut value = c.to_string();
                     self.expr.next();
@@ -94,7 +94,7 @@ pub mod lexer {
                         self.expr.next();
                         return Some(Token::Undefined);
                     }
-                }
+                },
                 // (5) Numeric, . .. ... ..=
                 Some(c) if Self::is_numeric_with_dot(*c) => {
                     let mut value = c.to_string();
@@ -125,14 +125,15 @@ pub mod lexer {
                     }
 
                     Some(Token::Numeric(value))
-                }  
-                // (24) = : :: > >= >> < <= << => += -= *= /= &= ^= &= |= == != + - * / % ^ & && | || ! // /* */
+                }
+                // (34) = : :: > >= >> < <= << => += -= *= /= &= ^= &= |= == != + - * / % ^ & && | || ! // /* */
+                // TODO Token::Stopped("::*")
                 Some(c) if Self::is_punctuation(*c) => {
                     let (token, next_this_times) =
                         Self::next_punctuation(c.to_string(), self.expr.clone());
 
-                    //Advance 'next()' position since self.expr was cloned()
-                    for i in 0..=next_this_times {
+                    //Advance 'next()' x times position since self.expr was cloned()
+                    for i in 0..next_this_times {
                         self.expr.next();
                     }
                     return token;
@@ -171,7 +172,7 @@ pub mod lexer {
                         //self.expr.next();
                         return Some(Token::Undefined);
                     }
-                }
+                },
                 // Word()
                 Some(c) if Self::is_word(*c) => {
                     let mut value = c.to_string();
@@ -198,7 +199,7 @@ pub mod lexer {
                     let value = c.to_string();
                     self.expr.next();
                     Some(Token::Character(value))
-                },
+                }
                 None => return Some(Token::Undefined),
             }
         }
@@ -236,6 +237,5 @@ Removed for testing new peek()
                 //         Some(_) => return Some(Token::Undefined),
                 //         None => return Some(Token::Undefined),
                 //     }
-                // } 
+                // }
 */
- 

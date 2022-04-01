@@ -144,130 +144,6 @@ pub mod generic {
                 kind: Token::RawString(value.to_string()),
             }
         }
-
-        // (24) = : :: > >= >> < <= << => += -= *= /= &= ^= &= |= == != + - * / % ^ & && | || ! // /* */
-        pub fn next_punctuation(
-            mut value: String,
-            mut expression: Peekable<Chars<'a>>,
-        ) -> (Option<Token>, usize) {
-            // println!("_______init_________test_me() '{}'", &value);
-            expression.next();
-            while let Some(peeking) = expression.peek() {
-                match Some(peeking) {
-                    Some('=') => {
-                        expression.next();
-                        value.push('=');
-                    }
-                    Some('>') => {
-                        expression.next();
-                        value.push('>');
-                    }
-                    Some('<') => {
-                        expression.next();
-                        value.push('<');
-                    }
-                    Some(':') => {
-                        expression.next();
-                        value.push(':');
-                    }
-                    Some('.') => {
-                        expression.next();
-                        value.push('.');
-                    }
-                    Some('+') => {
-                        expression.next();
-                        value.push('+');
-                    }
-                    Some('-') => {
-                        expression.next();
-                        value.push('-');
-                    }
-                    Some('*') => {
-                        expression.next();
-                        value.push('*');
-                    }
-                    Some('/') => {
-                        expression.next();
-                        value.push('/');
-                    }
-                    Some('%') => {
-                        expression.next();
-                        value.push('%');
-                    }
-                    //
-                    Some('^') => {
-                        expression.next();
-                        value.push('^');
-                    }
-                    Some('&') => {
-                        expression.next();
-                        value.push('&');
-                    }
-                    Some('|') => {
-                        expression.next();
-                        value.push('|');
-                    }
-                    Some('!') => {
-                        expression.next();
-                        value.push('!');
-                    }
-                    //
-                    Some(c) => {
-                        //println!("___________ '{}'", *c);
-                        break;
-                    }
-                    None => break,
-                }
-            }
-
-            //println!("test_me() value::'{}'", &value);
-            match Some(value.as_str()) {
-                Some("=") => return (Some(Token::Eq), 1),
-                Some(":") => return (Some(Token::Colon), 1),
-                Some("::") => return (Some(Token::PathSep), 2),
-                Some(">") => return (Some(Token::Gt), 1),
-                Some(">=") => return (Some(Token::Ge), 2),
-                Some(">>") => return (Some(Token::Shr), 2),
-                Some("<") => return (Some(Token::Lt), 1),
-                Some("<=") => return (Some(Token::Le), 2),
-                Some("<<") => return (Some(Token::Shl), 2),
-                Some("=>") => return (Some(Token::FatArrow), 2),
-                Some(".") => return (Some(Token::Dot), 1),
-                Some("..") => return (Some(Token::DotDot), 2),
-                Some("...") => return (Some(Token::DotDotDot), 3),
-                Some("..=") => return (Some(Token::DotDotEq), 3),
-                //
-                Some("+=") => return (Some(Token::PlusEq), 2),
-                Some("-=") => return (Some(Token::MinusEq), 2),
-                Some("*=") => return (Some(Token::StarEq), 2),
-                Some("/=") => return (Some(Token::SlashEq), 2),
-                Some("%=") => return (Some(Token::PercentEq), 2),
-                Some("^=") => return (Some(Token::CaretEq), 2),
-                Some("&=") => return (Some(Token::AndEq), 2),
-                Some("|=") => return (Some(Token::OrEq), 2),
-                Some("==") => return (Some(Token::EqEq), 2),
-                Some("!=") => return (Some(Token::NotEq), 2),
-                //
-                Some("+") => return (Some(Token::Plus), 1),
-                Some("-") => return (Some(Token::Minus), 1),
-                Some("*") => return (Some(Token::Star), 1),
-                Some("/") => return (Some(Token::Slash), 1),
-                Some("%") => return (Some(Token::Percent), 1),
-                Some("^") => return (Some(Token::Caret), 1),
-                Some("&") => return (Some(Token::And), 1),
-                Some("&&") => return (Some(Token::AndAnd), 2),
-                Some("|") => return (Some(Token::Or), 1),
-                Some("||") => return (Some(Token::OrOr), 2),
-                Some("!") => return (Some(Token::Not), 1),
-                //
-                Some("//") => return (Some(Token::LineComment("//".to_string())), 2),
-                Some("/*") => return (Some(Token::BlockCommentStart("/*".to_string())), 2),
-                Some("*/") => return (Some(Token::BlockCommentStop("*/".to_string())), 2),
-                //
-                Some(_) => return (Some(Token::Stopped(value.clone())), value.len()),
-                None => return (Some(Token::Undefined), 0),
-            }
-        }
     }
 
     pub mod numeric {
@@ -298,7 +174,7 @@ pub mod generic {
             }
         }
     }
- 
+
     pub mod escapes {
         use crate::interpeter::lexer::lexer::Tokenizer;
 
@@ -322,9 +198,141 @@ pub mod generic {
     }
 
     pub mod generic {
-        use crate::interpeter::lexer::lexer::Tokenizer;
+        use std::{iter::Peekable, str::Chars};
+
+        use crate::{enums::Token, interpeter::lexer::lexer::Tokenizer};
 
         impl<'a> Tokenizer<'a> {
+            // (34) = : :: > >= >> < <= << => += -= *= /= &= ^= &= |= == != + - * / % ^ & && | || ! // /* */
+            pub fn next_punctuation(
+                mut value: String,
+                mut expression: Peekable<Chars<'a>>,
+            ) -> (Option<Token>, usize) {
+                expression.next();
+                while let Some(peeking) = expression.peek() {
+                    match Some(peeking) {
+                        Some('=') => {
+                            expression.next();
+                            value.push('=');
+                        }
+                        Some('>') => {
+                            expression.next();
+                            value.push('>');
+                        }
+                        Some('<') => {
+                            expression.next();
+                            value.push('<');
+                        }
+                        Some(':') => {
+                            expression.next();
+                            value.push(':');
+                        }
+                        Some('.') => {
+                            expression.next();
+                            value.push('.');
+                        }
+                        Some('+') => {
+                            expression.next();
+                            value.push('+');
+                        }
+                        Some('-') => {
+                            expression.next();
+                            value.push('-');
+                        }
+                        Some('*') => {
+                            if value == "::"{
+                                break;
+                            } else {
+                            expression.next();
+                            value.push('*');
+                            }
+                        }
+                        Some('/') => {
+                            expression.next();
+                            value.push('/');
+                        }
+                        Some('%') => {
+                            expression.next();
+                            value.push('%');
+                        }
+                        //
+                        Some('^') => {
+                            expression.next();
+                            value.push('^');
+                        }
+                        Some('&') => {
+                            expression.next();
+                            value.push('&');
+                        }
+                        Some('|') => {
+                            expression.next();
+                            value.push('|');
+                        }
+                        Some('!') => {
+                            expression.next();
+                            value.push('!');
+                        }
+                        // working on this section
+                        // Some(c) if Self::is_word(*c) => {
+                        //     let cc = c.to_string();
+                        //     expression.next();
+                        //     value.push_str(&cc);
+                        // }
+                        Some(c) => {
+                            //println!("___________ '{}'", *c);
+                            break;
+                        }
+                        None => break,
+                    }
+                } 
+                match Some(value.as_str()) {
+                    Some("=") => return (Some(Token::Eq), 1),
+                    Some(":") => return (Some(Token::Colon), 1),
+                    Some("::") => return (Some(Token::PathSep), 2),
+                    Some(">") => return (Some(Token::Gt), 1),
+                    Some(">=") => return (Some(Token::Ge), 2),
+                    Some(">>") => return (Some(Token::Shr), 2),
+                    Some("<") => return (Some(Token::Lt), 1),
+                    Some("<=") => return (Some(Token::Le), 2),
+                    Some("<<") => return (Some(Token::Shl), 2),
+                    Some("=>") => return (Some(Token::FatArrow), 2),
+
+                    // Some(".") => return (Some(Token::Dot), 1),
+                    // Some("..") => return (Some(Token::DotDot), 2),
+                    // Some("...") => return (Some(Token::DotDotDot), 3),
+                    // Some("..=") => return (Some(Token::DotDotEq), 3), 
+                    Some("+=") => return (Some(Token::PlusEq), 2),
+                    Some("-=") => return (Some(Token::MinusEq), 2),
+                    Some("*=") => return (Some(Token::StarEq), 2),
+                    Some("/=") => return (Some(Token::SlashEq), 2),
+                    Some("%=") => return (Some(Token::PercentEq), 2),
+                    Some("^=") => return (Some(Token::CaretEq), 2),
+
+                    Some("&=") => return (Some(Token::AndEq), 2),
+                    Some("|=") => return (Some(Token::OrEq), 2),
+                    Some("==") => return (Some(Token::EqEq), 2),
+                    Some("!=") => return (Some(Token::NotEq), 2), 
+                    Some("+") => return (Some(Token::Plus), 1),
+                    Some("-") => return (Some(Token::Minus), 1),
+                    Some("*") => return (Some(Token::Star), 1),
+                    Some("/") => return (Some(Token::Slash), 1),
+                    Some("%") => return (Some(Token::Percent), 1),
+                    Some("^") => return (Some(Token::Caret), 1),
+
+                    Some("&") => return (Some(Token::And), 1),
+                    Some("&&") => return (Some(Token::AndAnd), 2),
+                    Some("|") => return (Some(Token::Or), 1),
+                    Some("||") => return (Some(Token::OrOr), 2),
+                    Some("!") => return (Some(Token::Not), 1), 
+                    Some("//") => return (Some(Token::LineComment("//".to_string())), 2),
+                    Some("/*") => return (Some(Token::BlockCommentStart("/*".to_string())), 2),
+                    Some("*/") => return (Some(Token::BlockCommentStop("*/".to_string())), 2),
+                    //
+                    Some(_) => return (Some(Token::Stopped(value.clone())), value.len()),
+                    None => return (Some(Token::Undefined), 0),
+                }
+            }
+
             pub fn starts_with_double_quote(c: char) -> bool {
                 c == '"'
             }
@@ -342,7 +350,7 @@ pub mod generic {
             }
 
             pub fn is_word(c: char) -> bool {
-                c.is_alphanumeric() || c == '_' || c == '#' || c == '"'
+                c.is_alphanumeric() || c == '_' // || c == '#' || c == '"'
             }
 
             pub fn is_punctuation(c: char) -> bool {
@@ -369,85 +377,4 @@ pub mod generic {
         }
     }
 }
-
-/*
-
-        pub fn depreciated_check_is_math_operator(
-            mut value: String,
-            mut expression: Peekable<Chars<'a>>,
-        ) -> (Option<Token>, usize) {
-            expression.next();
-            while let Some(peeking) = expression.peek() {
-                match Some(peeking) {
-                    Some('+') => {
-                        expression.next();
-                        value.push('+');
-                    }
-                    Some('-') => {
-                        expression.next();
-                        value.push('-');
-                    }
-                    Some('*') => {
-                        expression.next();
-                        value.push('*');
-                    }
-                    Some('/') => {
-                        expression.next();
-                        value.push('/');
-                    }
-                    Some('%') => {
-                        expression.next();
-                        value.push('%');
-                    }
-                    Some('^') => {
-                        expression.next();
-                        value.push('^');
-                    }
-                    Some('&') => {
-                        expression.next();
-                        value.push('&');
-                    }
-                    Some('|') => {
-                        expression.next();
-                        value.push('|');
-                    }
-                    Some('=') => {
-                        expression.next();
-                        value.push('=');
-                    }
-                    Some('!') => {
-                        expression.next();
-                        value.push('!');
-                    }
-                    Some(c) => {
-                        //println!("test_me() '{}'", *c);
-                        break;
-                    }
-                    None => break,
-                }
-            }
-
-            //println!("test_me() value::'{}'", &value);
-            match Some(value.as_str()) {
-                Some("+=") => return (Some(Token::PlusEq), 2),
-                Some("+") => return (Some(Token::Plus), 1),
-                Some("-") => return (Some(Token::Minus), 1),
-                Some("*") => return (Some(Token::Star), 1),
-                Some("/") => return (Some(Token::Slash), 1),
-                Some("%") => return (Some(Token::Percent), 1),
-                Some("^") => return (Some(Token::Caret), 1),
-                Some("&") => return (Some(Token::And), 1),
-                Some("&&") => return (Some(Token::AndAnd), 2),
-                Some("|") => return (Some(Token::Or), 1),
-                Some("||") => return (Some(Token::OrOr), 2),
-                Some("=") => return (Some(Token::Eq), 1),
-                Some("!") => return (Some(Token::Not), 1),
-                Some(_) => return (Some(Token::Stopped(value.clone())), value.len()),
-                None => return (Some(Token::Undefined), 0),
-            }
-        }
-
-
-
-
-*/
+ 
