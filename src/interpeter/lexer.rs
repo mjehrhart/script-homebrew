@@ -95,6 +95,39 @@ pub mod lexer {
                         Some(Token::Undefined)
                     }
                 },
+                // (7) @ _ , ; # $ ?
+                Some(c) if Self::is_lesser_punctutation(*c) => match Some(c) {
+                    Some('@') => {
+                        self.expr.next();
+                        Some(Token::At)
+                    }
+                    Some('_') => {
+                        self.expr.next();
+                        Some(Token::Underscore)
+                    }
+                    Some(',') => {
+                        self.expr.next();
+                        Some(Token::Comma)
+                    }
+                    Some(';') => {
+                        self.expr.next();
+                        Some(Token::Semi)
+                    }
+                    Some('#') => {
+                        self.expr.next();
+                        Some(Token::Pound)
+                    }
+                    Some('$') => {
+                        self.expr.next();
+                        Some(Token::Dollar)
+                    }
+                    Some('?') => {
+                        self.expr.next();
+                        Some(Token::Question)
+                    }
+                    Some(_) => Some(Token::Undefined),
+                    None => Some(Token::Undefined),
+                },
                 // (5) Numeric, . .. ... ..=
                 Some(c) if Self::is_numeric_with_dot(*c) => {
                     let mut value = c.to_string();
@@ -120,13 +153,13 @@ pub mod lexer {
                         Some(_) => {}
                         None => {}
                     }
-                    if value.contains('.') {
+                    if value.contains('.') || value.contains('_'){
                         return Some(Token::Floating(value));
                     }
 
                     Some(Token::Numeric(value))
                 }
-                // (34) = : :: > >= >> < <= << => += -= *= /= &= ^= &= |= == != + - * / % ^ & && | || ! // /* */
+                // (37) = : :: > >= >> < <= << => += -= *= /= &= ^= &= |= == != + - * / % ^ & && | || ! // /* */ >>= <<= ->
                 Some(c) if Self::is_punctuation(*c) => {
                     let (token, next_this_times) =
                         Self::next_punctuation(c.to_string(), self.expr.clone());
@@ -187,8 +220,15 @@ pub mod lexer {
                             }
                             None => break,
                         }
-                    } 
+                    }
 
+                    //Look for raw strings and raw byte strings
+                    let check =  Self::check_if_raw_string(&value);
+                    if check.found {
+                        println!("'{:?}'", check.kind);
+                    }
+
+                    //Look for keyword tokens
                     let toak = Tokenizer::new("");
                     let flag = toak.keywords.get(&*value);
                     match flag {
@@ -255,25 +295,3 @@ pub mod lexer {
         }
     }
 }
-
-/*
-
-Removed for testing new peek()
-
-
-                //     match Some(c) {
-                //         Some('@') => return Some(Token::At),
-                //         Some('_') => return Some(Token::Underscore),
-                //         Some('.') => return Some(Token::Dot),
-                //         Some(',') => return Some(Token::Comma),
-                //         Some(';') => return Some(Token::Semi),
-                //         Some(':') => return Some(Token::Colon),
-                //         Some('#') => return Some(Token::Pound),
-                //         Some('$') => return Some(Token::Dollar),
-                //         Some('?') => return Some(Token::Question),
-                //         Some('-') => return Some(Token::Minus),
-                //         Some(_) => return Some(Token::Undefined),
-                //         None => return Some(Token::Undefined),
-                //     }
-                // }
-*/

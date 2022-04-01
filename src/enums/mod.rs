@@ -20,8 +20,6 @@ pub enum Token {
     BlockCommentStop(String),
     BracketLeft,
     BracketRight,
-    BoolFalse,
-    BoolTrue,
     Byte(String),
     ByteString(String),
     Caret,
@@ -79,15 +77,13 @@ pub enum Token {
     SlashEq,
     Star,
     StarEq,
+    Stopped(String), //for debugging
     String(String),
     Tab,
-    Temp(String),       //for debugging
-    Temp2(String),      //for debugging
     Undefined,
     Underscore,
     WhiteSpace,
     Word(String),
-    Stopped(String),    //for debugging
     KW_As,
     KW_Async,
     KW_Await,

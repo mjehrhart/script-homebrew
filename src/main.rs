@@ -73,10 +73,10 @@ fn main() -> Result<(), std::io::Error> {
     if let Ok(page) = this {
         let tmp = page.clone();
 
-        let tokenizer = interpeter::lexer::lexer::Tokenizer::new(&tmp);
+        let mut tokenizer = interpeter::lexer::lexer::Tokenizer::new(&tmp);
         let mut i = 0;
-        //while let Some(token) = tokenizer.next() {
-        for token in tokenizer {
+        while let Some(token) = tokenizer.next() {
+        //for token in &tokenizer.into_iter() {
             match Some(token) {
                 Some(t) => match t {
                     enums::Token::Undefined => break,
@@ -93,6 +93,10 @@ fn main() -> Result<(), std::io::Error> {
                 break;
             }
         }
+
+        println!("{:?}", tokenizer);
+
+
 
         //let parsie = interpeter::parser::parser::Parser::new(&tmp).unwrap();
 

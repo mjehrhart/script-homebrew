@@ -127,7 +127,12 @@ pub mod generic {
             token
         }
 
+
         pub fn check_if_raw_string(value: &str) -> RawString {
+
+            println!("check_if_raw_string => '{:?}'", value);
+
+
             let re_raw_string = regex::Regex::new(r#"".+""#).unwrap();
             //let raw_string = r#"hello"#;
             let x = re_raw_string.is_match(value);
@@ -144,6 +149,7 @@ pub mod generic {
                 kind: Token::RawString(value.to_string()),
             }
         }
+    
     }
 
     pub mod numeric {
@@ -203,7 +209,7 @@ pub mod generic {
         use crate::{enums::Token, interpeter::lexer::lexer::Tokenizer};
 
         impl<'a> Tokenizer<'a> {
-            // (34) = : :: > >= >> < <= << => += -= *= /= &= ^= &= |= == != + - * / % ^ & && | || ! // /* */
+            // (37) = : :: > >= >> < <= << => += -= *= /= &= ^= &= |= == != + - * / % ^ & && | || ! // /* */ >>= <<= ->
             pub fn next_punctuation(
                 mut value: String,
                 mut expression: Peekable<Chars<'a>>,
@@ -285,24 +291,22 @@ pub mod generic {
                     Some(">") => (Some(Token::Gt), 1),
                     Some(">=") => (Some(Token::Ge), 2),
                     Some(">>") => (Some(Token::Shr), 2),
+                    Some(">>=") => (Some(Token::ShrEq), 3),
                     Some("<") => (Some(Token::Lt), 1),
                     Some("<=") => (Some(Token::Le), 2),
                     Some("<<") => (Some(Token::Shl), 2),
-                    Some("=>") => (Some(Token::FatArrow), 2),
 
-                    // Some(".") => return (Some(Token::Dot), 1),
-                    // Some("..") => return (Some(Token::DotDot), 2),
-                    // Some("...") => return (Some(Token::DotDotDot), 3),
-                    // Some("..=") => return (Some(Token::DotDotEq), 3),
+                    Some("<<=") => (Some(Token::ShlEq), 3),
+                    Some("=>") => (Some(Token::FatArrow), 2), 
                     Some("+=") => (Some(Token::PlusEq), 2),
                     Some("-=") => (Some(Token::MinusEq), 2),
                     Some("*=") => (Some(Token::StarEq), 2),
                     Some("/=") => (Some(Token::SlashEq), 2),
                     Some("%=") => (Some(Token::PercentEq), 2),
-                    Some("^=") => (Some(Token::CaretEq), 2),
-
+                    Some("^=") => (Some(Token::CaretEq), 2), 
                     Some("&=") => (Some(Token::AndEq), 2),
                     Some("|=") => (Some(Token::OrEq), 2),
+
                     Some("==") => (Some(Token::EqEq), 2),
                     Some("!=") => (Some(Token::NotEq), 2),
                     Some("+") => (Some(Token::Plus), 1),
@@ -310,13 +314,14 @@ pub mod generic {
                     Some("*") => (Some(Token::Star), 1),
                     Some("/") => (Some(Token::Slash), 1),
                     Some("%") => (Some(Token::Percent), 1),
-                    Some("^") => (Some(Token::Caret), 1),
-
+                    Some("^") => (Some(Token::Caret), 1), 
                     Some("&") => (Some(Token::And), 1),
                     Some("&&") => (Some(Token::AndAnd), 2),
+
                     Some("|") => (Some(Token::Or), 1),
                     Some("||") => (Some(Token::OrOr), 2),
                     Some("!") => (Some(Token::Not), 1),
+                    Some("->") => (Some(Token::RArrow), 2),
                     Some("//") => (Some(Token::LineComment("//".to_string())), 2),
                     Some("/*") => (Some(Token::BlockCommentStart("/*".to_string())), 2),
                     Some("*/") => (Some(Token::BlockCommentStop("*/".to_string())), 2),
