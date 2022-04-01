@@ -146,7 +146,7 @@ pub mod generic {
         }
 
         // (24) = : :: > >= >> < <= << => += -= *= /= &= ^= &= |= == != + - * / % ^ & && | || ! // /* */
-        pub fn check_if_punctuation(
+        pub fn next_punctuation(
             mut value: String,
             mut expression: Peekable<Chars<'a>>,
         ) -> (Option<Token>, usize) {

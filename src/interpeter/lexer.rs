@@ -129,7 +129,7 @@ pub mod lexer {
                 // (24) = : :: > >= >> < <= << => += -= *= /= &= ^= &= |= == != + - * / % ^ & && | || ! // /* */
                 Some(c) if Self::is_punctuation(*c) => {
                     let (token, next_this_times) =
-                        Self::check_if_punctuation(c.to_string(), self.expr.clone());
+                        Self::next_punctuation(c.to_string(), self.expr.clone());
 
                     //Advance 'next()' position since self.expr was cloned()
                     for i in 0..=next_this_times {
