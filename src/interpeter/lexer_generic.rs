@@ -128,11 +128,9 @@ pub mod generic {
         }
 
         pub fn check_if_raw_string(value: &str) -> RawString {
-            
             let re_raw_string = regex::Regex::new(r#"".+""#).unwrap();
             //let raw_string = r#"hello"#;
             let x = re_raw_string.is_match(&value);
-             
 
             //let raw_byte_string = regex::Regex::new(br#"".+""#).unwrap();
             //let raw_byte_string2 = br#"hello"#;
@@ -143,7 +141,131 @@ pub mod generic {
 
             RawString {
                 found: x,
-                kind: Token::RawString(value.to_string())
+                kind: Token::RawString(value.to_string()),
+            }
+        }
+
+        // (24) = : :: > >= >> < <= << => += -= *= /= &= ^= &= |= == != + - * / % ^ & && | || ! // /* */
+        pub fn check_if_punctuation(
+            mut value: String,
+            mut expression: Peekable<Chars<'a>>,
+        ) -> (Option<Token>, usize) {
+            // println!("_______init_________test_me() '{}'", &value);
+            expression.next();
+            while let Some(peeking) = expression.peek() {
+                match Some(peeking) {
+                    Some('=') => {
+                        expression.next();
+                        value.push('=');
+                    }
+                    Some('>') => {
+                        expression.next();
+                        value.push('>');
+                    }
+                    Some('<') => {
+                        expression.next();
+                        value.push('<');
+                    }
+                    Some(':') => {
+                        expression.next();
+                        value.push(':');
+                    }
+                    Some('.') => {
+                        expression.next();
+                        value.push('.');
+                    }
+                    Some('+') => {
+                        expression.next();
+                        value.push('+');
+                    }
+                    Some('-') => {
+                        expression.next();
+                        value.push('-');
+                    }
+                    Some('*') => {
+                        expression.next();
+                        value.push('*');
+                    }
+                    Some('/') => {
+                        expression.next();
+                        value.push('/');
+                    }
+                    Some('%') => {
+                        expression.next();
+                        value.push('%');
+                    }
+                    //
+                    Some('^') => {
+                        expression.next();
+                        value.push('^');
+                    }
+                    Some('&') => {
+                        expression.next();
+                        value.push('&');
+                    }
+                    Some('|') => {
+                        expression.next();
+                        value.push('|');
+                    }
+                    Some('!') => {
+                        expression.next();
+                        value.push('!');
+                    }
+                    //
+                    Some(c) => {
+                        //println!("___________ '{}'", *c);
+                        break;
+                    }
+                    None => break,
+                }
+            }
+
+            //println!("test_me() value::'{}'", &value);
+            match Some(value.as_str()) {
+                Some("=") => return (Some(Token::Eq), 1),
+                Some(":") => return (Some(Token::Colon), 1),
+                Some("::") => return (Some(Token::PathSep), 2),
+                Some(">") => return (Some(Token::Gt), 1),
+                Some(">=") => return (Some(Token::Ge), 2),
+                Some(">>") => return (Some(Token::Shr), 2),
+                Some("<") => return (Some(Token::Lt), 1),
+                Some("<=") => return (Some(Token::Le), 2),
+                Some("<<") => return (Some(Token::Shl), 2),
+                Some("=>") => return (Some(Token::FatArrow), 2),
+                Some(".") => return (Some(Token::Dot), 1),
+                Some("..") => return (Some(Token::DotDot), 2),
+                Some("...") => return (Some(Token::DotDotDot), 3),
+                Some("..=") => return (Some(Token::DotDotEq), 3),
+                //
+                Some("+=") => return (Some(Token::PlusEq), 2),
+                Some("-=") => return (Some(Token::MinusEq), 2),
+                Some("*=") => return (Some(Token::StarEq), 2),
+                Some("/=") => return (Some(Token::SlashEq), 2),
+                Some("%=") => return (Some(Token::PercentEq), 2),
+                Some("^=") => return (Some(Token::CaretEq), 2),
+                Some("&=") => return (Some(Token::AndEq), 2),
+                Some("|=") => return (Some(Token::OrEq), 2),
+                Some("==") => return (Some(Token::EqEq), 2),
+                Some("!=") => return (Some(Token::NotEq), 2),
+                //
+                Some("+") => return (Some(Token::Plus), 1),
+                Some("-") => return (Some(Token::Minus), 1),
+                Some("*") => return (Some(Token::Star), 1),
+                Some("/") => return (Some(Token::Slash), 1),
+                Some("%") => return (Some(Token::Percent), 1),
+                Some("^") => return (Some(Token::Caret), 1),
+                Some("&") => return (Some(Token::And), 1),
+                Some("&&") => return (Some(Token::AndAnd), 2),
+                Some("|") => return (Some(Token::Or), 1),
+                Some("||") => return (Some(Token::OrOr), 2),
+                Some("!") => return (Some(Token::Not), 1),
+                //
+                Some("//") => return (Some(Token::LineComment("//".to_string())), 2),
+                Some("/*") => return (Some(Token::BlockCommentStart("/*".to_string())), 2),
+                Some("*/") => return (Some(Token::BlockCommentStop("*/".to_string())), 2),
+                //
+                Some(_) => return (Some(Token::Stopped(value.clone())), value.len()),
+                None => return (Some(Token::Undefined), 0),
             }
         }
     }
@@ -154,8 +276,12 @@ pub mod generic {
         use crate::{enums::Token, interpeter::lexer::lexer::Tokenizer};
 
         impl<'a> Tokenizer<'a> {
-            pub fn is_numeric_with_period(c: char) -> bool {
+            pub fn is_numeric_with_dot(c: char) -> bool {
                 c.is_ascii_digit() || c == '.' || c == '_'
+            }
+
+            pub fn is_numeric_with_dot_eq_underscore(c: char) -> bool {
+                c.is_ascii_digit() || c == '.' || c == '_' || c == '='
             }
 
             pub fn is_math_operator(c: char) -> bool {
@@ -169,22 +295,10 @@ pub mod generic {
                     || c == '&'
                     || c == '|'
                     || c == '='
-                    || c == ' '
-                    || c == '>'
             }
         }
     }
-
-    pub mod comment {
-        use crate::interpeter::lexer::lexer::Tokenizer;
-
-        impl<'a> Tokenizer<'a> {
-            pub fn is_comment(c: char) -> bool {
-                c == '/' || c == '*'
-            }
-        }
-    }
-
+ 
     pub mod escapes {
         use crate::interpeter::lexer::lexer::Tokenizer;
 
@@ -200,23 +314,9 @@ pub mod generic {
                     || c == '\''
                     || c == '\"'
             }
-        }
-    }
 
-    pub mod boolean {
-        use crate::interpeter::lexer::lexer::Tokenizer;
-
-        impl<'a> Tokenizer<'a> {
-            pub fn is_boolean(c: char) -> bool {
-                c == 't'
-                    || c == 'r'
-                    || c == 'u'
-                    || c == 'e'
-                    || c == 'f'
-                    || c == 'a'
-                    || c == 'l'
-                    || c == 's'
-                    || c == 'e'
+            pub fn bracket_delimiters(c: char) -> bool {
+                c == '{' || c == '[' || c == '(' || c == ')' || c == ']' || c == '}'
             }
         }
     }
@@ -225,6 +325,10 @@ pub mod generic {
         use crate::interpeter::lexer::lexer::Tokenizer;
 
         impl<'a> Tokenizer<'a> {
+            pub fn starts_with_double_quote(c: char) -> bool {
+                c == '"'
+            }
+
             pub fn is_new_line(c: char) -> bool {
                 c == '\r' || c == '\n'
             }
@@ -237,59 +341,113 @@ pub mod generic {
                 c == ' '
             }
 
-            pub fn is_string_value(c: char) -> bool {
-                c == '"'
-            }
-
-            pub fn is_less_than_greater_than_string_value(c: char) -> bool {
-                c == '<'
-            }
-
-            pub fn is_double_colon(c: char) -> bool {
-                c.is_alphabetic() || c == ':' || c == '_'
-            }
-
             pub fn is_word(c: char) -> bool {
                 c.is_alphanumeric() || c == '_' || c == '#' || c == '"'
             }
 
-            pub fn is_reference(c: char) -> bool {
-                c == '&'
-            }
-
-            pub fn bracket_delimiters(c: char) -> bool {
-                c == '{' || c == '[' || c == '(' || c == ')' || c == ']' || c == '}'
-            }
-
-            pub fn is_fat_arrow(c: char) -> bool {
-                c == '='
-            }
-
-            pub fn starts_with_equal_sign(c: char) -> bool {
-                c == '='
-            }
-
-            pub fn is_gt_lt_fat_arrow(c: char) -> bool {
-                c == '>' || c == '<' || c == '='
+            pub fn is_punctuation(c: char) -> bool {
+                //println!("___________ c is '{}'", &c);
+                c == '.'
+                    || c == '+'
+                    || c == '-'
+                    || c == '*'
+                    || c == '/'
+                    || c == '%'
+                    || c == '^'
+                    || c == '&'
+                    || c == '|'
+                    || c == '!'
+                    || c == ':'
+                    || c == '>'
+                    || c == '='
+                    || c == '<'
             }
 
             pub fn is_lesser_punctutation(c: char) -> bool {
-                c == '@'
-                    || c == '_'
-                    || c == '.'
-                    || c == ','
-                    || c == ';'
-                    || c == ':'
-                    || c == '-'
-                    || c == '#'
-                    || c == '$'
-                    || c == '?'
-                //|| c == '>' //needed for RArrow ->
-            }
-
-            pub fn is_dot_or_eq(c: char) -> bool {
-                c == '.' || c == '='
+                c == '@' || c == '_' || c == ',' || c == ';' || c == '#' || c == '$' || c == '?'
             }
         }
     }
 }
+
+/*
+
+        pub fn depreciated_check_is_math_operator(
+            mut value: String,
+            mut expression: Peekable<Chars<'a>>,
+        ) -> (Option<Token>, usize) {
+            expression.next();
+            while let Some(peeking) = expression.peek() {
+                match Some(peeking) {
+                    Some('+') => {
+                        expression.next();
+                        value.push('+');
+                    }
+                    Some('-') => {
+                        expression.next();
+                        value.push('-');
+                    }
+                    Some('*') => {
+                        expression.next();
+                        value.push('*');
+                    }
+                    Some('/') => {
+                        expression.next();
+                        value.push('/');
+                    }
+                    Some('%') => {
+                        expression.next();
+                        value.push('%');
+                    }
+                    Some('^') => {
+                        expression.next();
+                        value.push('^');
+                    }
+                    Some('&') => {
+                        expression.next();
+                        value.push('&');
+                    }
+                    Some('|') => {
+                        expression.next();
+                        value.push('|');
+                    }
+                    Some('=') => {
+                        expression.next();
+                        value.push('=');
+                    }
+                    Some('!') => {
+                        expression.next();
+                        value.push('!');
+                    }
+                    Some(c) => {
+                        //println!("test_me() '{}'", *c);
+                        break;
+                    }
+                    None => break,
+                }
+            }
+
+            //println!("test_me() value::'{}'", &value);
+            match Some(value.as_str()) {
+                Some("+=") => return (Some(Token::PlusEq), 2),
+                Some("+") => return (Some(Token::Plus), 1),
+                Some("-") => return (Some(Token::Minus), 1),
+                Some("*") => return (Some(Token::Star), 1),
+                Some("/") => return (Some(Token::Slash), 1),
+                Some("%") => return (Some(Token::Percent), 1),
+                Some("^") => return (Some(Token::Caret), 1),
+                Some("&") => return (Some(Token::And), 1),
+                Some("&&") => return (Some(Token::AndAnd), 2),
+                Some("|") => return (Some(Token::Or), 1),
+                Some("||") => return (Some(Token::OrOr), 2),
+                Some("=") => return (Some(Token::Eq), 1),
+                Some("!") => return (Some(Token::Not), 1),
+                Some(_) => return (Some(Token::Stopped(value.clone())), value.len()),
+                None => return (Some(Token::Undefined), 0),
+            }
+        }
+
+
+
+
+*/

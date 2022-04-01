@@ -61,13 +61,13 @@ use std::{
 
 fn main() -> Result<(), std::io::Error> {
     // #![recursion_limit = "256"]
-   
+
     //*************************************************************************************************** */
     //*************************************************************************************************** */
     //Test 1
     let frb = controller::ruby::FormulaRb::new();
 
-    let path = "/Users/matthew/dev/projects/script-homebrew/temp.rb";
+    let path = "/Users/matthew/dev/projects/script-homebrew/temp.txt";
     let this = frb.read_template(path);
 
     if let Ok(page) = this {
@@ -80,7 +80,7 @@ fn main() -> Result<(), std::io::Error> {
             match Some(token) {
                 Some(t) => match t {
                     enums::Token::Undefined => break,
-                    enums::Token::WhiteSpace => {},
+                    enums::Token::WhiteSpace => {}
                     _ => {
                         println!("{}. {:?}", i, t);
                     }
@@ -88,6 +88,10 @@ fn main() -> Result<(), std::io::Error> {
                 None => break,
             }
             i += 1;
+
+            if i > 100 {
+                break;
+            }
         }
 
         //let parsie = interpeter::parser::parser::Parser::new(&tmp).unwrap();
