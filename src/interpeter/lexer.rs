@@ -153,7 +153,7 @@ pub mod lexer {
                         Some(_) => {}
                         None => {}
                     }
-                    if value.contains('.') || value.contains('_'){
+                    if value.contains('.') || value.contains('_') {
                         return Some(Token::Floating(value));
                     }
 
@@ -223,7 +223,7 @@ pub mod lexer {
                     }
 
                     //Look for raw strings and raw byte strings
-                    let check =  Self::check_if_raw_string(&value);
+                    let check = Self::check_if_raw_string(&value);
                     if check.found {
                         println!("'{:?}'", check.kind);
                     }
@@ -255,11 +255,11 @@ pub mod lexer {
 
     // Unit tests
     #[cfg(test)]
-    mod tests {
+    mod unit_test {
         use super::*;
 
         #[test]
-        fn test_next_tokenizer() {
+        fn test_basic_tokenizer() {
             let mut tokenizer = Tokenizer::new("Water is healthy!");
             assert_eq!(tokenizer.next().unwrap(), Token::Word("Water".to_string()));
             assert_eq!(tokenizer.next().unwrap(), Token::WhiteSpace);
@@ -280,17 +280,22 @@ pub mod lexer {
             assert_eq!(tokenizer.next().unwrap(), Token::KW_Super);
             assert_eq!(tokenizer.next().unwrap(), Token::PathSep);
             assert_eq!(tokenizer.next().unwrap(), Token::Star);
-            assert_eq!(tokenizer.next().unwrap(), Token::Character(';'.to_string()));
+            assert_eq!(tokenizer.next().unwrap(), Token::Semi);
         }
 
         #[test]
         fn test_numeric_tokenizer() {
-            let mut tokenizer = Tokenizer::new("200 404.4");
+            let mut tokenizer = Tokenizer::new("200 404.4 5_000");
             assert_eq!(tokenizer.next().unwrap(), Token::Numeric("200".to_string()));
             assert_eq!(tokenizer.next().unwrap(), Token::WhiteSpace);
             assert_eq!(
                 tokenizer.next().unwrap(),
                 Token::Floating("404.4".to_string())
+            );
+            assert_eq!(tokenizer.next().unwrap(), Token::WhiteSpace);
+            assert_eq!(
+                tokenizer.next().unwrap(),
+                Token::Floating("5_000".to_string())
             );
         }
     }
