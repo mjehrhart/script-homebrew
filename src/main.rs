@@ -101,7 +101,24 @@ fn main() -> Result<(), std::io::Error> {
 
         //Transforms tokens into Token::RawString, Token::RawByteString if found
         let mut found = token_container.iter().position(|r| r == &Token::Pound);
-        while found != None {
+
+        let mut flag = false;
+        match found {
+            Some(index) => {
+                println!("found::index:: {:?}", index);
+                if index > 0
+                    && (token_container[index - 1] == Token::Word("r".to_string())
+                        || token_container[index - 1] == Token::Word("br".to_string()))
+                {
+                    flag = true;
+                } else {
+                    flag = false;
+                }
+            }
+            None => {}
+        }
+
+        while flag {
             let index = found.unwrap();
             if token_container[index - 1] == Token::Word("r".to_string())
                 || token_container[index - 1] == Token::Word("br".to_string())
@@ -129,11 +146,30 @@ fn main() -> Result<(), std::io::Error> {
             }
 
             found = token_container.iter().position(|r| r == &Token::Pound);
+
+            flag = false;
+            match found {
+                Some(index) => {
+                    println!("found::index:: {:?}", index);
+                    if index > 0
+                        && (token_container[index - 1] == Token::Word("r".to_string())
+                            || token_container[index - 1] == Token::Word("br".to_string()))
+                    {
+                        flag = true;
+                    } else {
+                        flag = false;
+                    }
+                }
+                None => {}
+            }
         }
 
- 
-       /*  //Transforms tokens into Token::Byte, Token::ByteString
-        let mut found = token_container.iter().position(|r| r == &Token::Word("b".to_string()));
+        //Transforms tokens into Token::Byte, Token::ByteString
+        let mut found = token_container
+            .iter()
+            .position(|r| r == &Token::Word("b".to_string()));
+        
+
         while found != None {
             let index = found.unwrap();
 
@@ -158,10 +194,9 @@ fn main() -> Result<(), std::io::Error> {
                 }
             } else {
                 let token_plus_one = &token_container[index + 1];
- 
-                match Some(token_plus_one) {
-                    Some(Token::String(str)) => { 
 
+                match Some(token_plus_one) {
+                    Some(Token::String(str)) => {
                         let raw_token = Token::ByteString(str.to_string());
                         token_container.remove(index + 1); // Token::String()
                         token_container.remove(index); // 'b'
@@ -177,7 +212,7 @@ fn main() -> Result<(), std::io::Error> {
                 .iter()
                 .position(|r| r == &Token::Word("b".to_string()));
         }
- */
+
         //Print Finalized list of tokens
         println!("________________________");
         let mut i = 0;
