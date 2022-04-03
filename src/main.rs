@@ -15,7 +15,7 @@ use std::{
     io::{BufWriter, Write},
 };
 
-use crate::enums::Token;
+use crate::{enums::Token, interpeter::lexer::lexer::Tokenizer};
 
 //use interpeter::ast::{BNode, Node};
 
@@ -99,120 +99,9 @@ fn main() -> Result<(), std::io::Error> {
             }
         }
 
-        //Transforms tokens into Token::RawString, Token::RawByteString if found
-        let mut found = token_container.iter().position(|r| r == &Token::Pound);
-
-        let mut flag = false;
-        match found {
-            Some(index) => {
-                println!("found::index:: {:?}", index);
-                if index > 0
-                    && (token_container[index - 1] == Token::Word("r".to_string())
-                        || token_container[index - 1] == Token::Word("br".to_string()))
-                {
-                    flag = true;
-                } else {
-                    flag = false;
-                }
-            }
-            None => {}
-        }
-
-        while flag {
-            let index = found.unwrap();
-            if token_container[index - 1] == Token::Word("r".to_string())
-                || token_container[index - 1] == Token::Word("br".to_string())
-            {
-                let token_plus_one = &token_container[index + 1];
-                match Some(token_plus_one) {
-                    Some(Token::String(str)) => {
-                        println!("Found R Word: {:?}, {}", token_container[index - 1], str);
-
-                        let mut raw_token = Token::RawString(str.to_string());
-                        if token_container[index - 1] == Token::Word("br".to_string()) {
-                            raw_token = Token::RawByteString(str.to_string());
-                        }
-
-                        token_container.remove(index + 2); // '#'
-                        token_container.remove(index + 1); // 'str'
-                        token_container.remove(index); // '#'
-                        token_container.remove(index - 1); // 'r'
-
-                        token_container.insert(index - 1, raw_token);
-                    }
-                    Some(_) => {}
-                    None => {}
-                }
-            }
-
-            found = token_container.iter().position(|r| r == &Token::Pound);
-
-            flag = false;
-            match found {
-                Some(index) => {
-                    println!("found::index:: {:?}", index);
-                    if index > 0
-                        && (token_container[index - 1] == Token::Word("r".to_string())
-                            || token_container[index - 1] == Token::Word("br".to_string()))
-                    {
-                        flag = true;
-                    } else {
-                        flag = false;
-                    }
-                }
-                None => {}
-            }
-        }
-
-        //Transforms tokens into Token::Byte, Token::ByteString
-        let mut found = token_container
-            .iter()
-            .position(|r| r == &Token::Word("b".to_string()));
-        
-
-        while found != None {
-            let index = found.unwrap();
-
-            if token_container[index + 1] == Token::SingleQuote
-                && token_container[index + 3] == Token::SingleQuote
-            {
-                let k = &token_container[index + 2];
-                match k {
-                    Token::Word(c) => {
-                        //println!("Found b'H' Word: {:?}, {}", token_container[index + 2], c);
-
-                        let raw_token = Token::Byte(c.to_string());
-
-                        token_container.remove(index + 3); // '''
-                        token_container.remove(index + 2); // Token::Word('H')
-                        token_container.remove(index + 1); // '''
-                        token_container.remove(index); // 'b'
-
-                        token_container.insert(index, raw_token);
-                    }
-                    _ => {}
-                }
-            } else {
-                let token_plus_one = &token_container[index + 1];
-
-                match Some(token_plus_one) {
-                    Some(Token::String(str)) => {
-                        let raw_token = Token::ByteString(str.to_string());
-                        token_container.remove(index + 1); // Token::String()
-                        token_container.remove(index); // 'b'
-
-                        token_container.insert(index, raw_token);
-                    }
-                    Some(_) => {}
-                    None => {}
-                }
-            }
-
-            found = token_container
-                .iter()
-                .position(|r| r == &Token::Word("b".to_string()));
-        }
-
+        let token_container = Tokenizer::transform_test(token_container);
+ 
+        //
         //Print Finalized list of tokens
         println!("________________________");
         let mut i = 0;

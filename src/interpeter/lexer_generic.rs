@@ -9,11 +9,14 @@ pub mod generic {
     use std::fs::OpenOptions;
     use std::iter::Peekable;
     use std::str::Chars;
-    use std::vec::IntoIter;
+    use std::vec::{IntoIter, self};
 
+    #[derive(Debug, Clone)]
     pub struct RawString {
         pub found: bool,
         pub kind: Token,
+        pub start: usize,
+        pub removals: Vec<usize>,
     }
 
     /// Example
@@ -127,11 +130,129 @@ pub mod generic {
             token
         }
 
+        /// Transforms tokens into Token::RawString, Token::RawByteString if found
+        pub fn transform_test(mut token_container: Vec<Token>) -> Vec<Token> {
+            let mut the_list: Vec<RawString> = vec![];
 
+            for (i, _) in token_container.iter().enumerate() {
+                match &token_container[i] {
+                    Token::Word(c) if c == &"r" => {
+                        if &token_container[i + 1] == &Token::Pound
+                            && &token_container[i + 3] == &Token::Pound
+                        {
+
+                            match &token_container[i + 2] {
+                                Token::String(cc) => {
+
+                                    let removals = vec![i, i+1, i+2, i+3];
+                                    let entry = RawString {
+                                        found: true,
+                                        kind: Token::RawString(cc.clone()),
+                                        start: i,
+                                        removals
+                                    };
+                                    the_list.push(entry);
+                                }
+                                _ => {}
+                            }
+                        }
+                    }
+                    Token::Word(c) if c == &"br" => {
+                        if &token_container[i + 1] == &Token::Pound
+                            && &token_container[i + 3] == &Token::Pound
+                        {
+                            match &token_container[i + 2] {
+                                Token::String(cc) => { 
+
+                                    let removals = vec![i, i+1, i+2, i+3];
+                                    let entry = RawString {
+                                        found: true,
+                                        kind: Token::RawByteString(cc.clone()),
+                                        start: i,
+                                        removals
+                                    };
+                                    the_list.push(entry);
+                                }
+                                _ => {}
+                            }
+                        }
+                    }
+                    Token::Word(c) if c == &"b" => match &token_container[i + 1] {
+                        Token::String(cc) => {
+                            // println!("{:?}", &token_container[i]);
+                            // println!("{:?}", &token_container[i + 1]);
+
+                            let removals = vec![i, i+1];
+                            let entry = RawString {
+                                found: true,
+                                kind: Token::ByteString(cc.clone()),
+                                start: i,
+                                removals
+                            };
+                            the_list.push(entry);
+                        }
+                        // (this is for i+2)
+                        Token::SingleQuote => {
+                            if &token_container[i + 3] == &Token::SingleQuote {
+                                match &token_container[i + 2] {
+                                    Token::Word(cc) => {
+
+                                        let removals = vec![i, i+1, i+2, i+3];
+                                        let entry = RawString {
+                                            found: true,
+                                            kind: Token::Byte(cc.clone()),
+                                            start: i,
+                                            removals
+                                        };
+                                        the_list.push(entry);
+                                    }
+                                    _ => {}
+                                }
+                            }
+                        }
+                        _ => {}
+                    },
+                    _ => {}
+                }
+            }
+
+
+            for k in (0..the_list.len()).rev() {
+               
+                //Remove multible consumed tokens for new single token
+               let entry = &the_list[k];
+                for i in (0..entry.removals.len()).rev(){
+                    let x = entry.removals[i];
+                    token_container.remove(x);  
+                }
+
+                //Insert new token
+                let nt = &entry.kind;
+                match &nt { 
+                    Token::Byte(c) => { 
+                        token_container.insert(entry.start, Token::Byte((**c).to_string()));
+                    },
+                    Token::ByteString(c) => {
+                        token_container.insert(entry.start, Token::ByteString((**c).to_string()));
+                    }, 
+                    Token::RawString(c) => {
+                        token_container.insert(entry.start, Token::RawString((**c).to_string()));
+                    },
+                    Token::RawByteString(c) => {
+                        token_container.insert(entry.start, Token::RawByteString((**c).to_string()));
+                    },
+                    _ => {}
+                     
+                }
+                //token_container.insert(entry.start, nt );
+
+            }
+
+            token_container
+        }
+ 
         pub fn check_if_raw_string(value: &str) -> RawString {
-
             //println!("check_if_raw_string => '{:?}'", value);
-
 
             let re_raw_string = regex::Regex::new(r#"".+""#).unwrap();
             //let raw_string = r#"hello"#;
@@ -147,9 +268,10 @@ pub mod generic {
             RawString {
                 found: x,
                 kind: Token::RawString(value.to_string()),
+                start: 0,
+                removals: vec![],
             }
         }
-    
     }
 
     pub mod numeric {
@@ -297,13 +419,13 @@ pub mod generic {
                     Some("<<") => (Some(Token::Shl), 2),
 
                     Some("<<=") => (Some(Token::ShlEq), 3),
-                    Some("=>") => (Some(Token::FatArrow), 2), 
+                    Some("=>") => (Some(Token::FatArrow), 2),
                     Some("+=") => (Some(Token::PlusEq), 2),
                     Some("-=") => (Some(Token::MinusEq), 2),
                     Some("*=") => (Some(Token::StarEq), 2),
                     Some("/=") => (Some(Token::SlashEq), 2),
                     Some("%=") => (Some(Token::PercentEq), 2),
-                    Some("^=") => (Some(Token::CaretEq), 2), 
+                    Some("^=") => (Some(Token::CaretEq), 2),
                     Some("&=") => (Some(Token::AndEq), 2),
                     Some("|=") => (Some(Token::OrEq), 2),
 
@@ -314,7 +436,7 @@ pub mod generic {
                     Some("*") => (Some(Token::Star), 1),
                     Some("/") => (Some(Token::Slash), 1),
                     Some("%") => (Some(Token::Percent), 1),
-                    Some("^") => (Some(Token::Caret), 1), 
+                    Some("^") => (Some(Token::Caret), 1),
                     Some("&") => (Some(Token::And), 1),
                     Some("&&") => (Some(Token::AndAnd), 2),
 
