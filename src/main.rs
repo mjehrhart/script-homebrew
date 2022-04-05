@@ -86,7 +86,7 @@ fn main() -> Result<(), std::io::Error> {
                     enums::Token::Undefined => break,
                     enums::Token::WhiteSpace => {}
                     _ => {
-                        println!("{}. {:?}", i, t);
+                        //println!("{}. {:?}", i, t);
                         token_container.push(t);
                     }
                 },
@@ -94,12 +94,12 @@ fn main() -> Result<(), std::io::Error> {
             }
             i += 1;
 
-            if i > 1000 {
+            if i > 100000 {
                 break;
             }
         }
 
-        let token_container = Tokenizer::transform_test(token_container);
+        let token_container = Tokenizer::transform_special_tokens_into_raw_byte_tokens(token_container);
  
         //
         //Print Finalized list of tokens

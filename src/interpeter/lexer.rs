@@ -86,11 +86,13 @@ pub mod lexer {
                         self.expr.next();
                         Some(Token::DoubleQuote)
                     }
-                    Some(_) => {
+                    Some(c) => {
+                        println!("Token::Undefined(1)::'{}'", c);
                         self.expr.next();
                         Some(Token::Undefined)
                     }
                     None => {
+                        println!("Token::Undefined(2)::'None'");
                         self.expr.next();
                         Some(Token::Undefined)
                     }
@@ -125,8 +127,12 @@ pub mod lexer {
                         self.expr.next();
                         Some(Token::Question)
                     }
-                    Some(_) => Some(Token::Undefined),
-                    None => Some(Token::Undefined),
+                    Some(c) => {
+                        println!("Token::Undefined(3)::'{}'", c);
+                        Some(Token::Undefined)},
+                    None => {
+                        println!("Token::Undefined(4)::'None'");
+                        Some(Token::Undefined)},
                 },
                 // (5) Numeric, . .. ... ..=
                 Some(c) if Self::is_numeric_with_dot(*c) => {
@@ -196,12 +202,14 @@ pub mod lexer {
                         self.expr.next();
                         Some(Token::ParenRight)
                     }
-                    Some(_) => {
+                    Some(c) => {
                         //self.expr.next();
+                        println!("Token::Undefined(5)::'None'");
                         Some(Token::Undefined)
                     }
                     None => {
                         //self.expr.next();
+                        println!("Token::Undefined(6)::'None'");
                         Some(Token::Undefined)
                     }
                 },
@@ -248,7 +256,10 @@ pub mod lexer {
                     self.expr.next();
                     Some(Token::Character(value))
                 }
-                None => Some(Token::Undefined),
+                None => {
+                    println!("Token::Undefined(7)::'None'");
+                    Some(Token::Undefined)
+                },
             }
         }
     }

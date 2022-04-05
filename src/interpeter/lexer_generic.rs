@@ -131,7 +131,7 @@ pub mod generic {
         }
 
         /// Transforms tokens into Token::RawString, Token::RawByteString if found
-        pub fn transform_test(mut token_container: Vec<Token>) -> Vec<Token> {
+        pub fn transform_special_tokens_into_raw_byte_tokens(mut token_container: Vec<Token>) -> Vec<Token> {
             let mut the_list: Vec<RawString> = vec![];
 
             for (i, _) in token_container.iter().enumerate() {
@@ -306,10 +306,11 @@ pub mod generic {
     pub mod escapes {
         use crate::interpeter::lexer::lexer::Tokenizer;
 
+        //TODO add support for "c == '\x41'""
         impl<'a> Tokenizer<'a> {
             pub fn is_escaped(c: char) -> bool {
-                c == '\x41'
-                    || c == '\n'
+                //c == '\x41'
+                    c == '\n'
                     || c == '\r'
                     || c == '\t'
                     || c == '\\'
